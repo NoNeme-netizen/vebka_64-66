@@ -27,9 +27,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      packages: write  
     steps:
       - uses: actions/checkout@v4
+      # Docker требует имя образа в нижнем регистре
+      - name: vebka_64-66
+        id: repo
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ github.repository }}
       - name: Вход в GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -42,5 +48,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.lowercase }}:latest
+            ghcr.io/${{ steps.repo.outputs.lowercase }}:${{ github.sha }}
