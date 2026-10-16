@@ -1,8 +1,3 @@
-// Кастомный хук «Слепого пикера»: выносит логику вращения колеса
-// из компонента страницы в переиспользуемую функцию.
-// Внутри используются хуки useState (угол поворота, флаг вращения,
-// выпавший результат) и useEffect (сброс таймера при уходе со страницы).
-
 import { useEffect, useRef, useState } from "react";
 import { games } from "~/data/games";
 
@@ -42,5 +37,5 @@ export function usePicker() {
   // выпавшая версия (или null, если ещё не крутили)
   const result = resultIdx !== null ? games[resultIdx] : null;
 
-  return { rotation, spinning, result, spin };
+  return { rotation, spinning, result, resultIdx, spin };
 }
