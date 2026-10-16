@@ -15,5 +15,6 @@ export default [
   route("collection", "routes/collection.tsx"), // коллекция
   route("login", "routes/login.tsx"), // вход
   route("signup", "routes/signup.tsx"), // регистрация
-  route("friends", "routes/friends.tsx"), // друзья
+  route("friends", "routes/friends.tsx"),
+  route("logout", "routes/logout.tsx"), // выход из аккаунта (POST) // друзья
 ] satisfies RouteConfig;

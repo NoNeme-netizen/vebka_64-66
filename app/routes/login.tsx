@@ -1,25 +1,33 @@
 // Страница входа: форма с email и паролем.
-// На этапе интерфейса отправка формы только имитируется (useState).
+// Отправка уходит в action: сервер проверяет пару email+пароль
+// по файлу аккаунтов и «входит» — кладёт email в сессию-cookie.
 
-import { useState } from "react";
-import { Link } from "react-router";
+import { Form, Link, useActionData } from "react-router";
 import type { Route } from "./+types/login";
 import Button from "~/components/ui/Button";
+import { checkUser, createUserSession } from "~/auth.server";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Вход — Манчкин-пикер" }];
 }
 
-export default function Login() {
-  // значения полей формы
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+// выполняется на сервере при отправке формы (method="post")
+export async function action({ request }: Route.ActionArgs) {
+  const form = await request.formData();
+  const email = String(form.get("email") || "").trim().toLowerCase();
+  const password = String(form.get("password") || "");
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault(); // не перезагружаем страницу
-    // здесь позже будет запрос к серверу авторизации
-    alert(`Вход: ${email || "email не указан"}`);
-  };
+  // проверяем данные: вернётся текст ошибки или null
+  const error = checkUser(email, password);
+  if (error) return { error };
+
+  // успех: запоминаем пользователя в сессии и возвращаем на главную
+  return createUserSession(email, "/");
+}
+
+export default function Login() {
+  // ошибка, возвращённая action (если вход не удался)
+  const actionData = useActionData<typeof action>();
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-md">
@@ -48,13 +56,19 @@ export default function Login() {
           </Link>
         </div>
 
-        <form onSubmit={submit} className="mt-5 space-y-4">
+        <Form method="post" className="mt-5 space-y-4">
+          {actionData?.error && (
+            <p className="text-sm font-bold text-[#9C4A4A] text-center">
+              {actionData.error}
+            </p>
+          )}
+
           <label className="block">
             <span className="text-[10px] font-bold text-muted">EMAIL</span>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              required
               placeholder="введите email"
               className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
             />
@@ -64,8 +78,8 @@ export default function Login() {
             <span className="text-[10px] font-bold text-muted">ПАРОЛЬ</span>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              required
               placeholder="••••••••"
               className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
             />
@@ -82,7 +96,7 @@ export default function Login() {
           <Button type="submit" className="w-full">
             Войти
           </Button>
-        </form>
+        </Form>
 
         <p className="text-center text-xs text-muted mt-5">
           Нет аккаунта?{" "}
