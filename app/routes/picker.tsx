@@ -12,9 +12,6 @@ export function meta({}: Route.MetaArgs) {
 // цвета секторов колеса — палитра тематик
 const COLORS = ["#D9A441", "#9C4A4A", "#B85C38", "#6E8A5A", "#4A7E8C", "#8A7355"];
 
-// короткие названия версий для подписей на секторах
-const LABELS = ["Оригинал", "Вампирский", "Русский", "Зомби", "Пиратский", "Апокалипсис"];
-
 export default function Picker() {
   // вся логика колеса живёт в хуке
   const { rotation, spinning, result, resultIdx, spin } = usePicker();
@@ -59,32 +56,6 @@ export default function Picker() {
             transition: "transform 3s cubic-bezier(0.2, 0.8, 0.2, 1)",
           }}
         >
-          {/* разделители секторов */}
-          {[60, 120, 180, 240, 300].map((a) => (
-            <div
-              key={a}
-              className="absolute left-1/2 top-1/2 w-[49.5%] h-0.5 bg-white origin-left"
-              style={{ transform: `rotate(${a}deg)` }}
-            />
-          ))}
-
-          {/* подписи версий на секторах */}
-          {LABELS.map((label, i) => (
-            <div
-              key={label}
-              className="absolute left-1/2 top-1/2"
-              style={{ transform: `rotate(${i * 60 + 30}deg) translateY(-100px)` }}
-            >
-              <span
-                className="absolute -translate-x-1/2 -translate-y-1/2 whitespace-nowrap
-                           text-[10px] font-bold uppercase tracking-wide text-white"
-                style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.55)" }}
-              >
-                {label}
-              </span>
-            </div>
-          ))}
-
           {/* затемнение невыигравших секторов после остановки */}
           {resultIdx !== null && !spinning && (
             <div
