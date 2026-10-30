@@ -1,5 +1,7 @@
 // Серверная часть авторизации (файл .server — работает только на сервере).
-// Аккаунты сохраняются в db/users.json
+// Аккаунты сохраняются в db/users.json (создаётся сам при первой
+// регистрации), пароль хранится только в виде хэша SHA-256.
+// «Кто вошёл» запоминается в подписанной cookie-сессии.
 
 import { createCookieSessionStorage, redirect } from "react-router";
 import { createHash } from "node:crypto";
