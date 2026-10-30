@@ -7,7 +7,11 @@ import { games } from "~/data/games";
 import { collection } from "~/data/people";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Моя коллекция — Манчкин-пикер" }];
+  return [
+    { title: "Моя коллекция — Манчкин-пикер" },
+    // личный кабинет и формы авторизации не для поисковой выдачи
+    { name: "robots", content: "noindex" },
+  ];
 }
 
 export default function Collection() {
@@ -53,7 +57,7 @@ export default function Collection() {
               <tr key={r.slug} className="border-t border-[#eeeeea]">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <img src={r.game.photo} alt="" className="w-11 h-9 object-contain" />
+                    <img src={r.game.photo} alt={`Коробка: ${r.game.name}`} className="w-11 h-9 object-contain" />
                     <div>
                       <Link to={`/catalog/${r.slug}`} className="font-bold hover:text-accent">
                         {r.game.name}

@@ -6,7 +6,14 @@ import type { Route } from "./+types/picker";
 import { usePicker } from "~/hooks/usePicker";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Слепой пикер — Манчкин-пикер" }];
+  return [
+    { title: "Слепой пикер — Манчкин-пикер" },
+    {
+      name: "description",
+      content:
+        "Слепой пикер: случайный выбор версии «Манчкина» с помощью колеса — крути и играй.",
+    },
+  ];
 }
 
 // цвета секторов колеса — палитра тематик
@@ -85,7 +92,7 @@ export default function Picker() {
           <img src={result.photo} alt={result.name} className="w-20 h-20 object-contain" />
           <div className="flex-1">
             <p className="text-xs text-muted">Вам выпало:</p>
-            <p className="text-lg font-bold">{result.name}</p>
+            <h2 className="text-lg font-bold">{result.name}</h2>
             <p className="text-xs text-muted mt-0.5">
               {result.players} · {result.time} · сложность: {result.difficulty}
             </p>

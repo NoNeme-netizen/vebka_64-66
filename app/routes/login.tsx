@@ -8,7 +8,11 @@ import Button from "~/components/ui/Button";
 import { checkUser, createUserSession } from "~/auth.server";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Вход — Манчкин-пикер" }];
+  return [
+    { title: "Вход — Манчкин-пикер" },
+    // личный кабинет и формы авторизации не для поисковой выдачи
+    { name: "robots", content: "noindex" },
+  ];
 }
 
 // выполняется на сервере при отправке формы (method="post")

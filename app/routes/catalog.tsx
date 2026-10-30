@@ -7,7 +7,14 @@ import { games } from "~/data/games";
 import GameCard from "~/components/GameCard";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Каталог версий — Манчкин-пикер" }];
+  return [
+    { title: "Каталог версий — Манчкин-пикер" },
+    {
+      name: "description",
+      content:
+        "Все версии «Манчкина» в одном каталоге: фильтры по тематике, сложности и времени партии.",
+    },
+  ];
 }
 
 // «60–90 мин» -> средняя длительность в минутах (для сравнения с фильтром)

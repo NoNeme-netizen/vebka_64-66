@@ -1,25 +1,41 @@
 // Страница регистрации: никнейм, email и пароль.
-// Данные формы хранятся в состояниях (useState).
+// После успешной регистрации пользователь сразу входит в аккаунт.
 
-import { useState } from "react";
-import { Link } from "react-router";
+import { Form, Link, useActionData } from "react-router";
 import type { Route } from "./+types/signup";
 import Button from "~/components/ui/Button";
+import { createUserSession, signupUser } from "~/auth.server";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Регистрация — Манчкин-пикер" }];
+  return [
+    { title: "Регистрация — Манчкин-пикер" },
+    // личный кабинет и формы авторизации не для поисковой выдачи
+    { name: "robots", content: "noindex" },
+  ];
+}
+
+// выполняется на сервере при отправке формы (method="post")
+export async function action({ request }: Route.ActionArgs) {
+  const form = await request.formData();
+  const nickname = String(form.get("nickname") || "").trim();
+  const email = String(form.get("email") || "").trim().toLowerCase();
+  const password = String(form.get("password") || "");
+
+  // простая проверка полей на сервере
+  if (nickname.length < 2) return { error: "Никнейм — минимум 2 символа" };
+  if (!email.includes("@")) return { error: "Введите корректный email" };
+  if (password.length < 6) return { error: "Пароль — минимум 6 символов" };
+
+  // сохраняем аккаунт (ошибка вернётся, если email уже занят)
+  const error = signupUser(nickname, email, password);
+  if (error) return { error };
+
+  // регистрация прошла — сразу входим и возвращаем на главную
+  return createUserSession(email, "/");
 }
 
 export default function Signup() {
-  const [nickname, setNickname] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // здесь позже будет запрос на создание пользователя в БД
-    alert(`Аккаунт для «${nickname || "новичок"}» почти готов`);
-  };
+  const actionData = useActionData<typeof action>();
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-md">
@@ -47,12 +63,19 @@ export default function Signup() {
           </span>
         </div>
 
-        <form onSubmit={submit} className="mt-5 space-y-4">
+        <Form method="post" className="mt-5 space-y-4">
+          {actionData?.error && (
+            <p className="text-sm font-bold text-[#9C4A4A] text-center">
+              {actionData.error}
+            </p>
+          )}
+
           <label className="block">
             <span className="text-[10px] font-bold text-muted">НИКНЕЙМ</span>
             <input
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
+              name="nickname"
+              required
+              minLength={2}
               placeholder="как вас звать в игре"
               className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
             />
@@ -62,8 +85,8 @@ export default function Signup() {
             <span className="text-[10px] font-bold text-muted">EMAIL</span>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              required
               placeholder="введите email"
               className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
             />
@@ -73,8 +96,9 @@ export default function Signup() {
             <span className="text-[10px] font-bold text-muted">ПАРОЛЬ</span>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              required
+              minLength={6}
               placeholder="минимум 6 символов"
               className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
             />
@@ -85,13 +109,10 @@ export default function Signup() {
             Согласен с правилами сайта
           </label>
 
-          <button
-            type="submit"
-            className="w-full h-11 rounded-md bg-accent text-white text-sm font-bold hover:bg-accent/90"
-          >
+          <Button type="submit" className="w-full">
             Создать аккаунт
-          </button>
-        </form>
+          </Button>
+        </Form>
 
         <p className="text-center text-xs text-muted mt-5">
           Уже есть аккаунт?{" "}
