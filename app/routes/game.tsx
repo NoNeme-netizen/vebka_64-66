@@ -3,13 +3,21 @@
 
 import { Link, useParams } from "react-router";
 import type { Route } from "./+types/game";
-import { games, reviewsBySlug } from "~/data/games";
+import { games, reviewsBySlug, boxSizes } from "~/data/games";
 import { collection } from "~/data/people";
 import Button from "~/components/ui/Button";
 
 export function meta({ params }: Route.MetaArgs) {
   const game = games.find((g) => g.slug === params.slug);
-  return [{ title: `${game ? game.name : "Версия"} — Манчкин-пикер` }];
+  return [
+    { title: `${game ? game.name : "Версия"} — Манчкин-пикер` },
+    {
+      name: "description",
+      content: game
+        ? `${game.name} — характеристики, состав коробки и отзывы игроков. Выберите версию для следующей партии.`
+        : "Карточка версии «Манчкина» в каталоге Манчкин-пикер.",
+    },
+  ];
 }
 
 export default function GamePage() {
@@ -52,7 +60,13 @@ export default function GamePage() {
         {/* левая колонка: фото коробки */}
         <div className="w-[440px] shrink-0">
           <div className="bg-white border border-line rounded-lg p-6 grid place-items-center overflow-hidden">
-            <img src={game.photo} alt={game.name} className="max-h-72 w-auto max-w-full object-contain" />
+            <img
+              src={game.photo}
+              alt={game.name}
+              width={boxSizes[game.slug].w}
+              height={boxSizes[game.slug].h}
+              className="max-h-72 w-auto max-w-full object-contain"
+            />
           </div>
 
           {/* содержимое коробки */}

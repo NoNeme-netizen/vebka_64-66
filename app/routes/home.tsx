@@ -9,6 +9,11 @@ import GameCard from "~/components/GameCard";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Манчкин-пикер — во что играем сегодня?" },
+    {
+      name: "description",
+      content:
+        "Манчкин-пикер помогает выбрать версию «Манчкина» под компанию: каталог с фильтрами, слепой пикер, коллекция и друзья.",
+    },
   ];
 }
 
