@@ -22,7 +22,7 @@ export async function action({ request }: Route.ActionArgs) {
   const password = String(form.get("password") || "");
 
   // проверяем данные: вернётся текст ошибки или null
-  const error = checkUser(email, password);
+  const error = await checkUser(email, password);
   if (error) return { error };
 
   // успех: запоминаем пользователя в сессии и возвращаем на главную

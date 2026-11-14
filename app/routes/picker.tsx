@@ -1,8 +1,9 @@
 // Слепой пикер: случайный выбор версии с помощью «колеса».
 // Логика вращения вынесена в кастомный хук usePicker (app/hooks).
 
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/picker";
+import { loadGames } from "~/db.server";
 import { usePicker } from "~/hooks/usePicker";
 
 export function meta({}: Route.MetaArgs) {
@@ -19,9 +20,16 @@ export function meta({}: Route.MetaArgs) {
 // цвета секторов колеса — палитра тематик
 const COLORS = ["#D9A441", "#9C4A4A", "#B85C38", "#6E8A5A", "#4A7E8C", "#8A7355"];
 
+// версии для колеса приходят из базы (Supabase или локальный резерв)
+export async function loader({}: Route.LoaderArgs) {
+  return { games: await loadGames() };
+}
+
 export default function Picker() {
+  const { games } = useLoaderData<typeof loader>();
+
   // вся логика колеса живёт в хуке
-  const { rotation, spinning, result, resultIdx, spin } = usePicker();
+  const { rotation, spinning, result, resultIdx, spin } = usePicker(games);
 
   // сектора колеса рисуем через conic-gradient
   const gradient = `conic-gradient(${COLORS.map((c, i) => {

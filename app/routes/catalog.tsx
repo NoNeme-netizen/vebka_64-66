@@ -2,8 +2,9 @@
 // Фильтрация выполняется на клиенте через хук useState.
 
 import { useState } from "react";
+import { useLoaderData } from "react-router";
 import type { Route } from "./+types/catalog";
-import { games } from "~/data/games";
+import { loadGames } from "~/db.server";
 import GameCard from "~/components/GameCard";
 
 export function meta({}: Route.MetaArgs) {
@@ -33,7 +34,14 @@ const TIMES = [
   { label: "90+ мин", max: 999 },
 ];
 
+// данные каталога приходят из базы (Supabase или локальный резерв)
+export async function loader({}: Route.LoaderArgs) {
+  return { games: await loadGames() };
+}
+
 export default function Catalog() {
+  const { games } = useLoaderData<typeof loader>();
+
   // состояния фильтров
   const [theme, setTheme] = useState<string | null>(null);
   const [diff, setDiff] = useState<string | null>(null);

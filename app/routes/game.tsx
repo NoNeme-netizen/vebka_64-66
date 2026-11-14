@@ -1,14 +1,31 @@
 // Карточка версии игры: /catalog/:slug
-// Показывает фото коробки, характеристики, описание и отзывы.
+// Страница полностью строится из данных базы (Supabase или локальный резерв).
 
-import { Link, useParams } from "react-router";
+import { Link, useParams, useLoaderData } from "react-router";
 import type { Route } from "./+types/game";
-import { games, reviewsBySlug, boxSizes } from "~/data/games";
-import { collection } from "~/data/people";
+import { loadGames, loadReviewsBySlug, loadCollection } from "~/db.server";
+import { boxSizes } from "~/data/games";
 import Button from "~/components/ui/Button";
 
-export function meta({ params }: Route.MetaArgs) {
+// данные версии, её отзывов и наличия в коллекции приходят из базы
+export async function loader({ params }: Route.LoaderArgs) {
+  const games = await loadGames();
   const game = games.find((g) => g.slug === params.slug);
+  const reviews = game ? (await loadReviewsBySlug())[game.slug] ?? [] : [];
+  const collection = await loadCollection();
+  return {
+    game,
+    reviews,
+    inCollection: collection.some((c) => c.slug === params.slug),
+  };
+}
+
+export function meta({ matches }: Route.MetaArgs) {
+  // данные loader'а текущего маршрута (React Router передаёт их в matches)
+  const data = matches.find((m) => m?.id === "routes/game")?.loaderData as
+    | { game: { name: string } | null }
+    | undefined;
+  const game = data?.game ?? null;
   return [
     { title: `${game ? game.name : "Версия"} — Манчкин-пикер` },
     {
@@ -22,7 +39,7 @@ export function meta({ params }: Route.MetaArgs) {
 
 export default function GamePage() {
   const { slug } = useParams();
-  const game = games.find((g) => g.slug === slug);
+  const { game, reviews, inCollection } = useLoaderData<typeof loader>();
 
   // если адрес неверный — показываем заглушку
   if (!game) {
@@ -36,8 +53,6 @@ export default function GamePage() {
     );
   }
 
-  const reviews = reviewsBySlug[game.slug] ?? [];
-
   // характеристики версии (имитация строк таблицы game_versions)
   const params: [string, string][] = [
     ["Игроки", game.players],
@@ -45,8 +60,6 @@ export default function GamePage() {
     ["Сложность", game.difficulty],
     ["Возраст", `${game.age}+`],
   ];
-
-  const inCollection = collection.some((c) => c.slug === game.slug);
 
   return (
     <div className="container mx-auto px-4 py-8">

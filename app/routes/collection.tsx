@@ -9,7 +9,6 @@ import { collection } from "~/data/people";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Моя коллекция — Манчкин-пикер" },
-    // личный кабинет и формы авторизации не для поисковой выдачи
     { name: "robots", content: "noindex" },
   ];
 }

@@ -9,7 +9,6 @@ import { createUserSession, signupUser } from "~/auth.server";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Регистрация — Манчкин-пикер" },
-    // личный кабинет и формы авторизации не для поисковой выдачи
     { name: "robots", content: "noindex" },
   ];
 }
@@ -27,7 +26,7 @@ export async function action({ request }: Route.ActionArgs) {
   if (password.length < 6) return { error: "Пароль — минимум 6 символов" };
 
   // сохраняем аккаунт (ошибка вернётся, если email уже занят)
-  const error = signupUser(nickname, email, password);
+  const error = await signupUser(nickname, email, password);
   if (error) return { error };
 
   // регистрация прошла — сразу входим и возвращаем на главную

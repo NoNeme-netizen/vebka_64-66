@@ -1,8 +1,8 @@
 // Главная страница: краткое представление сервиса и популярные версии.
 
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
-import { games } from "~/data/games";
+import { loadGames } from "~/db.server";
 import GameCard from "~/components/GameCard";
 
 // Заголовок вкладки браузера
@@ -17,7 +17,14 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+// данные каталога приходят из базы (Supabase или локальный резерв)
+export async function loader({}: Route.LoaderArgs) {
+  return { games: await loadGames() };
+}
+
 export default function Home() {
+  const { games } = useLoaderData<typeof loader>();
+
   // три самые популярные версии (по рейтингу)
   const popular = [...games].sort((a, b) => +b.rating - +a.rating).slice(0, 3);
 

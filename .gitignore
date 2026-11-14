@@ -14,3 +14,7 @@ db/users.json
 # система
 .DS_Store
 *.log
+
+# локальные сертификаты и ключи (mkcert) — в репозиторий не попадают
+deploy/certs/
+*.pem
