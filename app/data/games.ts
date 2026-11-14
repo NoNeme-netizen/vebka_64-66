@@ -1,10 +1,4 @@
-// Данные о версиях игры (имитация таблицы game_versions из БД).
-// Фото коробок лежат в app/assets/boxes и подключаются через
-// new URL(...), чтобы путь не сломался после сборки проекта.
-
 import type { GameVersion, Review } from "~/types";
-
-// Vite сам подставит правильные пути к картинкам при сборке
 import origUrl from "../assets/boxes/orig.png";
 import vampUrl from "../assets/boxes/vamp.png";
 import rusUrl from "../assets/boxes/rus.png";

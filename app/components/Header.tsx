@@ -1,7 +1,3 @@
-// Шапка приложения: логотип, основное меню и блок профиля.
-// Активный пункт меню подчёркивается (NavLink с функцией className).
-// Если пользователь вошёл — вместо «Гость» видны его ник и кнопка «Выйти».
-
 import { NavLink, Link, Form } from "react-router";
 
 const NAV = [
@@ -12,8 +8,6 @@ const NAV = [
   { to: "/friends", label: "Друзья" },
 ];
 
-// пользователь приходит из корневого загрузчика (app/root.tsx);
-// null — гость
 export default function Header({
   user,
 }: {

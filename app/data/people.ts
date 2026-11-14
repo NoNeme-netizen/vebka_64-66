@@ -1,6 +1,3 @@
-// Данные коллекции и друзей (имитация таблиц collection_items,
-// friendships из БД). Используются на страницах «Коллекция» и «Друзья».
-
 import type { CollectionItem, Friend } from "~/types";
 
 export const collection: CollectionItem[] = [

@@ -13,8 +13,8 @@ import "./app.css";
 import Header from "~/components/Header"; // шапка сайта
 import Footer from "~/components/Footer"; // подвал сайта
 
-// Корневой layout: обёртка всех страниц приложения.
-// Шапка и подвал общие, содержимое страницы подставляется в <Outlet />.
+// Корневой layout: обёртка всех страниц приложения
+// Шапка и подвал общие, содержимое страницы подставляется в <Outlet />
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru">

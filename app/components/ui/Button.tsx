@@ -1,6 +1,3 @@
-// Переиспользуемая кнопка с двумя вариантами оформления:
-// primary — синяя заливка, secondary — белая с рамкой.
-
 import type { ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

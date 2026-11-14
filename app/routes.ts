@@ -16,5 +16,5 @@ export default [
   route("login", "routes/login.tsx"), // вход
   route("signup", "routes/signup.tsx"), // регистрация
   route("friends", "routes/friends.tsx"),
-  route("logout", "routes/logout.tsx"), // выход из аккаунта (POST) // друзья
+  route("logout", "routes/logout.tsx"), // выход
 ] satisfies RouteConfig;
