@@ -1,0 +1,67 @@
+# GitHub Actions: автоматическая проверка кода, сборка Docker-образа
+# и публикация его в GitHub Container Registry (GHCR).
+# Запускается при каждом push и при создании pull request.
+
+name: munchkin-picker CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+# первая задача — проверка типов TypeScript (аналог тестов из методички)
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # скачиваем код репозитория на виртуальную машину
+      - uses: actions/checkout@v4
+      # устанавливаем Node.js с кэшированием пакетов npm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      # зависимости ставим точно по package-lock.json
+      - name: Установка зависимостей
+        run: npm ci
+      # проверка типов: если в коде ошибка — задача упадёт
+      - name: Проверка типов TypeScript
+        run: npx react-router typegen && tsc --noEmit
+
+  # вторая задача — сборка Docker-образа и публикация в GHCR;
+  # начинается только после успешной проверки типов и только на push
+  build:
+    needs: typecheck
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # право публиковать образы в GHCR
+    steps:
+      - uses: actions/checkout@v4
+      # Docker требует имя образа в нижнем регистре,
+      # а ник владельца репозитория может содержать заглавные буквы
+      - name: Имя репозитория в нижнем регистре
+        id: repo
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ github.repository }}
+      # авторизация в GitHub Container Registry встроенным токеном
+      - name: Вход в GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      # сборка образа из Dockerfile и публикация под двумя тегами:
+      # latest (свежая версия) и хэш коммита (конкретная версия)
+      - name: Сборка и публикация образа
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ steps.repo.outputs.lowercase }}:latest
+            ghcr.io/${{ steps.repo.outputs.lowercase }}:${{ github.sha }}

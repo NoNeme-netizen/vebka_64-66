@@ -24,24 +24,9 @@
 
 ```bash
 npm install
-npm run dev      
-npm run build   
-npm start        
-```
-
-## Запуск через Docker
-
-```bash
-docker build -t munchkin-picker .
-docker run -p 3000:3000 munchkin-picker
-```
-
-Приложение будет доступно на http://localhost:3000.
-Docker-образ также публикуется автоматически в GitHub Container Registry
-при каждом push в main (см. `.github/workflows/build.yml`):
-
-```bash
-docker pull ghcr.io/noneme-netizen/vebka_64-66:latest
+npm run dev      # режим разработки (http://localhost:5173)
+npm run build    # production-сборка в папку build/
+npm start        # запуск собранного приложения
 ```
 
 ## Структура
@@ -56,12 +41,8 @@ app/
   routes/         страницы приложения
   types/          TypeScript-интерфейсы сущностей
 db/
-  munchkin_picker.db          база данных SQLite
-  schema.sql                  DDL-схема SQLite
-  munchkin_picker_mssql.sql   T-SQL-скрипт создания БД для SSMS
-
-.github/workflows/build.yml  CI: проверка типов + сборка и публикация
-                             Docker-образа в GHCR
+  munchkin_picker.db  база данных SQLite
+  schema.sql          DDL-схема
 ```
 
 ## База данных
@@ -77,3 +58,8 @@ ER-диаграмма и описание — в отчёте по практи�
 - `db/munchkin_picker_mssql.sql` — T-SQL-скрипт для Microsoft SQL Server
   (SSMS): создаёт базу `munchkin_picker`, все таблицы с ограничениями
   целостности и демонстрационные данные; запускается целиком по F5.
+
+---
+
+Учебный проект. Новосибирский авиационный технический колледж,
+специальность 09.02.07, группа ПР-24.102. Автор: Гаврилов Н.С., 2026.
