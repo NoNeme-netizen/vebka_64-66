@@ -5,9 +5,11 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useRouteLoaderData,
 } from "react-router";
 
 import type { Route } from "./+types/root";
+import { getUser } from "~/auth.server";
 import "./app.css";
 
 import Header from "~/components/Header"; // шапка сайта
@@ -15,7 +17,17 @@ import Footer from "~/components/Footer"; // подвал сайта
 
 // Корневой layout: обёртка всех страниц приложения.
 // Шапка и подвал общие, содержимое страницы подставляется в <Outlet />.
+
+// Корневой загрузчик: определяет, кто вошёл в приложение (или гость).
+export async function loader({ request }: Route.LoaderArgs) {
+  return { user: await getUser(request) };
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  // данные корневого загрузчика (undefined — например, страница ошибки)
+  const data = useRouteLoaderData<typeof loader>("root");
+  const user = data?.user ?? null;
+
   return (
     <html lang="ru">
       <head>
@@ -25,7 +37,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body className="min-h-screen flex flex-col">
-        <Header />
+        <Header user={user} />
         <main className="flex-1">{children}</main>
         <Footer />
         <ScrollRestoration />

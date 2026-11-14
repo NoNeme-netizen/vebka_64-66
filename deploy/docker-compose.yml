@@ -1,0 +1,35 @@
+# Репетиция деплоя «Манчкин-пикер»: приложение + nginx как единая точка входа.
+# Запуск из этой папки: docker compose up --build -d
+# Остановка:            docker compose down
+
+services:
+  # веб-приложение (React Router, серверный рендеринг).
+  # Порт 3000 НАРУЖУ не публикуется: снаружи проект доступен только через nginx
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: munchkin-picker-app
+    environment:
+      - PORT=3000
+      # секрет сессии передаётся переменной окружения, а не хранится в коде
+      - SESSION_SECRET=${SESSION_SECRET:-munchkin-picker-2026}
+      # облачная база Supabase (значения берутся из .env рядом с compose
+      # или из окружения; без них приложение работает на локальных данных)
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-}
+    restart: unless-stopped
+
+  # веб-сервер: HTTPS-сертификат, домен munchkin-picker.localhost,
+  # обратный прокси на приложение
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - app
+    restart: unless-stopped

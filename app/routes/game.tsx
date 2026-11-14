@@ -1,20 +1,45 @@
 // Карточка версии игры: /catalog/:slug
-// Показывает фото коробки, характеристики, описание и отзывы.
+// Страница полностью строится из данных базы (Supabase или локальный резерв).
 
-import { Link, useParams } from "react-router";
+import { Link, useParams, useLoaderData } from "react-router";
 import type { Route } from "./+types/game";
-import { games, reviewsBySlug } from "~/data/games";
-import { collection } from "~/data/people";
+import { loadGames, loadReviewsBySlug, loadCollection } from "~/db.server";
+import { boxSizes } from "~/data/games";
 import Button from "~/components/ui/Button";
 
-export function meta({ params }: Route.MetaArgs) {
+// данные версии, её отзывов и наличия в коллекции приходят из базы
+export async function loader({ params }: Route.LoaderArgs) {
+  const games = await loadGames();
   const game = games.find((g) => g.slug === params.slug);
-  return [{ title: `${game ? game.name : "Версия"} — Манчкин-пикер` }];
+  const reviews = game ? (await loadReviewsBySlug())[game.slug] ?? [] : [];
+  const collection = await loadCollection();
+  return {
+    game,
+    reviews,
+    inCollection: collection.some((c) => c.slug === params.slug),
+  };
+}
+
+export function meta({ matches }: Route.MetaArgs) {
+  // данные loader'а текущего маршрута (React Router передаёт их в matches)
+  const data = matches.find((m) => m?.id === "routes/game")?.loaderData as
+    | { game: { name: string } | null }
+    | undefined;
+  const game = data?.game ?? null;
+  return [
+    { title: `${game ? game.name : "Версия"} — Манчкин-пикер` },
+    {
+      name: "description",
+      content: game
+        ? `${game.name} — характеристики, состав коробки и отзывы игроков. Выберите версию для следующей партии.`
+        : "Карточка версии «Манчкина» в каталоге Манчкин-пикер.",
+    },
+  ];
 }
 
 export default function GamePage() {
   const { slug } = useParams();
-  const game = games.find((g) => g.slug === slug);
+  const { game, reviews, inCollection } = useLoaderData<typeof loader>();
 
   // если адрес неверный — показываем заглушку
   if (!game) {
@@ -28,8 +53,6 @@ export default function GamePage() {
     );
   }
 
-  const reviews = reviewsBySlug[game.slug] ?? [];
-
   // характеристики версии (имитация строк таблицы game_versions)
   const params: [string, string][] = [
     ["Игроки", game.players],
@@ -37,8 +60,6 @@ export default function GamePage() {
     ["Сложность", game.difficulty],
     ["Возраст", `${game.age}+`],
   ];
-
-  const inCollection = collection.some((c) => c.slug === game.slug);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -52,7 +73,13 @@ export default function GamePage() {
         {/* левая колонка: фото коробки */}
         <div className="w-[440px] shrink-0">
           <div className="bg-white border border-line rounded-lg p-6 grid place-items-center overflow-hidden">
-            <img src={game.photo} alt={game.name} className="max-h-72 w-auto max-w-full object-contain" />
+            <img
+              src={game.photo}
+              alt={game.name}
+              width={boxSizes[game.slug].w}
+              height={boxSizes[game.slug].h}
+              className="max-h-72 w-auto max-w-full object-contain"
+            />
           </div>
 
           {/* содержимое коробки */}

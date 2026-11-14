@@ -8,6 +8,7 @@ on:
   push:
     branches: ["main"]
   pull_request:
+  workflow_dispatch: # возможность запустить вручную (кнопка Run workflow)
 
 # первая задача — проверка типов TypeScript (аналог тестов из методички)
 jobs:

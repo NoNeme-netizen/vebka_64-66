@@ -6,7 +6,14 @@ import type { Route } from "./+types/friends";
 import { friends as initialFriends } from "~/data/people";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Друзья — Манчкин-пикер" }];
+  return [
+    { title: "Друзья — Манчкин-пикер" },
+    {
+      name: "description",
+      content:
+        "Пригласите друзей и соберите компанию для следующей партии «Манчкина».",
+    },
+  ];
 }
 
 export default function Friends() {
@@ -95,7 +102,7 @@ export default function Friends() {
           </div>
 
           <div className="bg-white border border-line rounded-lg p-5">
-            <p className="font-bold text-sm">Пригласить по ссылке</p>
+            <h2 className="font-bold text-sm">Пригласить по ссылке</h2>
             <div className="flex gap-2 mt-3">
               <span className="flex-1 h-10 rounded-md bg-chip px-3 text-xs leading-10 truncate">
                 munchkin-picker.ru/inv/8F3K2
@@ -113,7 +120,7 @@ export default function Friends() {
           </div>
 
           <div className="bg-white border border-line rounded-lg p-5">
-            <p className="font-bold text-sm">Как это работает</p>
+            <h2 className="font-bold text-sm">Как это работает</h2>
             <ol className="mt-3 space-y-2 text-sm text-muted list-none">
               {[
                 "Нажмите «Позвать играть» у друга",

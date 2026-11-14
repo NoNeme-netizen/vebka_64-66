@@ -2,12 +2,20 @@
 // Фильтрация выполняется на клиенте через хук useState.
 
 import { useState } from "react";
+import { useLoaderData } from "react-router";
 import type { Route } from "./+types/catalog";
-import { games } from "~/data/games";
+import { loadGames } from "~/db.server";
 import GameCard from "~/components/GameCard";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Каталог версий — Манчкин-пикер" }];
+  return [
+    { title: "Каталог версий — Манчкин-пикер" },
+    {
+      name: "description",
+      content:
+        "Все версии «Манчкина» в одном каталоге: фильтры по тематике, сложности и времени партии.",
+    },
+  ];
 }
 
 // «60–90 мин» -> средняя длительность в минутах (для сравнения с фильтром)
@@ -26,7 +34,14 @@ const TIMES = [
   { label: "90+ мин", max: 999 },
 ];
 
+// данные каталога приходят из базы (Supabase или локальный резерв)
+export async function loader({}: Route.LoaderArgs) {
+  return { games: await loadGames() };
+}
+
 export default function Catalog() {
+  const { games } = useLoaderData<typeof loader>();
+
   // состояния фильтров
   const [theme, setTheme] = useState<string | null>(null);
   const [diff, setDiff] = useState<string | null>(null);

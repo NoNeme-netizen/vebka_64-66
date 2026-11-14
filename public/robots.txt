@@ -1,0 +1,8 @@
+# Манчкин-пикер: правила для поисковых роботов
+User-agent: *
+# личный кабинет и формы авторизации — не для поисковой выдачи
+Disallow: /login
+Disallow: /signup
+Disallow: /collection
+
+Sitemap: https://munchkin-picker.ru/sitemap.xml

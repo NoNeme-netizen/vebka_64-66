@@ -8,7 +8,11 @@ import Button from "~/components/ui/Button";
 import { checkUser, createUserSession } from "~/auth.server";
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: "Вход — Манчкин-пикер" }];
+  return [
+    { title: "Вход — Манчкин-пикер" },
+    // личный кабинет и формы авторизации не для поисковой выдачи
+    { name: "robots", content: "noindex" },
+  ];
 }
 
 // выполняется на сервере при отправке формы (method="post")
@@ -18,7 +22,7 @@ export async function action({ request }: Route.ActionArgs) {
   const password = String(form.get("password") || "");
 
   // проверяем данные: вернётся текст ошибки или null
-  const error = checkUser(email, password);
+  const error = await checkUser(email, password);
   if (error) return { error };
 
   // успех: запоминаем пользователя в сессии и возвращаем на главную

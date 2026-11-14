@@ -1,6 +1,9 @@
 // Карточка версии игры: используется на главной и в каталоге.
+// Сверху — фото коробки, ниже — название, теги, параметры и рейтинг.
+
 import { Link } from "react-router";
 import type { GameVersion } from "~/types";
+import { boxSizes } from "~/data/games";
 
 export default function GameCard({ game }: { game: GameVersion }) {
   return (
@@ -13,12 +16,14 @@ export default function GameCard({ game }: { game: GameVersion }) {
         <img
           src={game.photo}
           alt={game.name}
+          width={boxSizes[game.slug].w}
+          height={boxSizes[game.slug].h}
           className="max-h-36 w-auto max-w-full object-contain"
         />
       </div>
 
       <div className="p-4 border-t border-line">
-        <h3 className="font-bold text-[15px]">{game.name}</h3>
+        <h2 className="font-bold text-[15px]">{game.name}</h2>
 
         {/* теги версии */}
         <div className="flex flex-wrap gap-1.5 mt-2">
