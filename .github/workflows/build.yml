@@ -29,7 +29,8 @@ jobs:
         run: npm ci
       # проверка типов: если в коде ошибка — задача упадёт
       - name: Проверка типов TypeScript
-        run: npx react-router typegen && tsc --noEmit
+      run: npm run typecheck
+
 
   # вторая задача — сборка Docker-образа и публикация в GHCR;
   # начинается только после успешной проверки типов и только на push
