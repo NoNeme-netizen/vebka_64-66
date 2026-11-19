@@ -4,12 +4,12 @@
 // выпавший результат) и useEffect (сброс таймера при уходе со страницы).
 
 import { useEffect, useRef, useState } from "react";
-import { games } from "~/data/games";
+import type { GameVersion } from "~/types";
 
 // длительность вращения колеса, мс
 const SPIN_MS = 3000;
 
-export function usePicker() {
+export function usePicker(games: GameVersion[]) {
   const [rotation, setRotation] = useState(0); // текущий угол колеса
   const [spinning, setSpinning] = useState(false); // крутится ли сейчас
   const [resultIdx, setResultIdx] = useState<number | null>(null);

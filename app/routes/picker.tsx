@@ -1,8 +1,9 @@
 // Слепой пикер: случайный выбор версии с помощью «колеса».
 // Логика вращения вынесена в кастомный хук usePicker (app/hooks).
 
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/picker";
+import { loadGames } from "~/db.server";
 import { usePicker } from "~/hooks/usePicker";
 
 export function meta({}: Route.MetaArgs) {
@@ -19,9 +20,16 @@ export function meta({}: Route.MetaArgs) {
 // цвета секторов колеса — палитра тематик
 const COLORS = ["#D9A441", "#9C4A4A", "#B85C38", "#6E8A5A", "#4A7E8C", "#8A7355"];
 
+// версии для колеса приходят из базы (Supabase или локальный резерв)
+export async function loader({}: Route.LoaderArgs) {
+  return { games: await loadGames() };
+}
+
 export default function Picker() {
+  const { games } = useLoaderData<typeof loader>();
+
   // вся логика колеса живёт в хуке
-  const { rotation, spinning, result, resultIdx, spin } = usePicker();
+  const { rotation, spinning, result, resultIdx, spin } = usePicker(games);
 
   // сектора колеса рисуем через conic-gradient
   const gradient = `conic-gradient(${COLORS.map((c, i) => {
@@ -42,7 +50,7 @@ export default function Picker() {
 
   return (
     <div className="container mx-auto px-4 py-10 text-center">
-      <h1 className="text-3xl font-bold">Слепой пикер</h1>
+      <h1 className="text-4xl font-black tracking-tight">Слепой пикер</h1>
       <p className="text-muted mt-2">Крутите колесо — и спор окончен</p>
 
       {/* колесо */}
@@ -56,7 +64,7 @@ export default function Picker() {
 
         {/* вращающийся круг */}
         <div
-          className="w-full h-full rounded-full border-4 border-white shadow-lg relative"
+          className="w-full h-full rounded-full border-[4px] border-white relative shadow-[0_0_0_3px_#141414,10px_10px_0_0_rgba(20,20,20,0.12)]"
           style={{
             background: gradient,
             transform: `rotate(${rotation}deg)`,
@@ -77,9 +85,10 @@ export default function Picker() {
           onClick={spin}
           disabled={spinning}
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10
-                     w-28 h-28 rounded-full bg-white border border-line font-bold
-                     text-accent text-sm tracking-wide shadow-md
-                     hover:scale-105 active:scale-95 transition-transform
+                     w-28 h-28 rounded-full bg-white border-[3px] border-ink font-black
+                     text-ink text-sm tracking-wide shadow-[4px_4px_0_0_#141414]
+                     hover:scale-105 active:translate-x-[3px] active:translate-y-[3px]
+                     active:shadow-[1px_1px_0_0_#141414] transition-all
                      disabled:opacity-60 disabled:hover:scale-100"
         >
           {spinning ? "..." : "КРУТИТЬ"}
@@ -88,7 +97,7 @@ export default function Picker() {
 
       {/* результат розыгрыша */}
       {result ? (
-        <div className="max-w-xl mx-auto mt-8 bg-white border border-line rounded-lg p-5 flex items-center gap-4 text-left">
+        <div className="card max-w-xl mx-auto mt-8 p-5 flex items-center gap-4 text-left">
           <img src={result.photo} alt={result.name} className="w-20 h-20 object-contain" />
           <div className="flex-1">
             <p className="text-xs text-muted">Вам выпало:</p>
@@ -98,12 +107,12 @@ export default function Picker() {
             </p>
           </div>
           <div className="flex flex-col gap-2">
-            <button onClick={spin} className="px-4 h-9 rounded-md bg-white border border-muted/50 text-xs hover:bg-soft">
+            <button onClick={spin} className="btn-hard bg-white px-4 h-9 text-xs">
               Ещё раз
             </button>
             <Link
               to={`/catalog/${result.slug}`}
-              className="px-4 h-9 rounded-md bg-accent text-white text-xs font-bold grid place-items-center hover:bg-accent/90"
+              className="btn-hard bg-accent px-4 h-9 text-xs"
             >
               Играть!
             </Link>

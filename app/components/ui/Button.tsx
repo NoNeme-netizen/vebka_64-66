@@ -1,5 +1,6 @@
 // Переиспользуемая кнопка с двумя вариантами оформления:
-// primary — синяя заливка, secondary — белая с рамкой.
+// primary — жёлтая заливка, secondary — белая с рамкой.
+// Оба варианта — фирменный стиль «жёсткой тени» (app.css, .btn-hard).
 
 import type { ButtonHTMLAttributes } from "react";
 
@@ -12,11 +13,7 @@ export default function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const base =
-    "px-5 h-11 rounded-md text-sm font-bold transition-colors disabled:opacity-40 disabled:cursor-not-allowed";
-  const look =
-    variant === "primary"
-      ? "bg-accent text-white hover:bg-accent/90"
-      : "bg-white border border-muted/50 text-ink hover:bg-soft";
+  const base = "btn-hard px-5 h-11 text-sm disabled:opacity-40";
+  const look = variant === "primary" ? "bg-accent" : "bg-white";
   return <button className={`${base} ${look} ${className}`} {...props} />;
 }

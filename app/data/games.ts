@@ -1,18 +1,20 @@
-// Данные о версиях игры (имитация таблицы game_versions из БД).
-// Фото коробок лежат в app/assets/boxes и подключаются через
-// new URL(...), чтобы путь не сломался после сборки проекта.
+// Данные о версиях игры (локальный резервный источник данных).
+// Используются, если не заданы переменные окружения Supabase
+// (см. app/db.server.ts). Фото коробок — в app/data/boxes.ts.
 
 import type { GameVersion, Review } from "~/types";
+import { boxes } from "./boxes";
 
-// Vite сам подставит правильные пути к картинкам при сборке
-import origUrl from "../assets/boxes/orig.png";
-import vampUrl from "../assets/boxes/vamp.png";
-import rusUrl from "../assets/boxes/rus.png";
-import zombUrl from "../assets/boxes/zomb.png";
-import pirateUrl from "../assets/boxes/pirate.png";
-import apocUrl from "../assets/boxes/apoc.png";
-
-const boxes = { orig: origUrl, vamp: vampUrl, rus: rusUrl, zomb: zombUrl, pirate: pirateUrl, apoc: apocUrl };
+// размеры фотографий коробок: подставляются в атрибуты width/height,
+// чтобы браузер резервировал место под картинку до её загрузки
+export const boxSizes: Record<string, { w: number; h: number }> = {
+  orig: { w: 326, h: 488 },
+  vamp: { w: 400, h: 598 },
+  rus: { w: 401, h: 605 },
+  zomb: { w: 364, h: 534 },
+  pirate: { w: 257, h: 390 },
+  apoc: { w: 410, h: 598 },
+};
 
 // размеры фотографий коробок: подставляются в атрибуты width/height,
 // чтобы браузер резервировал место под картинку до её загрузки
