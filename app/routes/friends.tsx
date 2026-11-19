@@ -2,8 +2,12 @@
 // Статус «приглашение отправлено» хранится в состоянии компонента.
 
 import { useState } from "react";
+import { useLoaderData } from "react-router";
 import type { Route } from "./+types/friends";
-import { friends as initialFriends } from "~/data/people";
+import { getUser } from "~/auth.server";
+import { loadFriends } from "~/db.server";
+import type { Friend } from "~/types";
+import PrivateGate from "~/components/PrivateGate";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -16,13 +20,26 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+// данные страницы зависят от того, кто открыл её:
+// гость увидит предложение войти, вошедший — своих друзей из базы
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await getUser(request);
+  if (!user) return { user: null, friends: [] as Friend[] };
+  return { user, friends: await loadFriends(user.id) };
+}
+
 export default function Friends() {
+  const { user, friends: initialFriends } = useLoaderData<typeof loader>();
+
   // копия списка в состоянии, чтобы отмечать отправленные приглашения
-  const [list, setList] = useState(initialFriends);
+  const [list] = useState<Friend[]>(initialFriends);
   const [invited, setInvited] = useState<number[]>([]);
 
   // отправить приглашение другу (имитация записи в game_invitations)
   const invite = (id: number) => setInvited((prev) => [...prev, id]);
+
+  // незарегистрированному чужие друзья не показываются
+  if (!user) return <PrivateGate what="Список друзей" />;
 
   return (
     <div className="container mx-auto px-4 py-8">

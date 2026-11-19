@@ -81,6 +81,7 @@ const storage = createCookieSessionStorage({
 });
 
 export interface SessionUser {
+  id: number; // id в таблице users (для личных данных: коллекция, друзья)
   nickname: string;
   email: string;
 }
@@ -91,17 +92,18 @@ export async function getUser(request: Request): Promise<SessionUser | null> {
   const email = session.get("email") as string | undefined;
   if (!email) return null;
 
-  // ник берём из хранилища аккаунтов (Supabase или локальный файл)
+  // ник и id берём из хранилища аккаунтов (Supabase или локальный файл)
   if (supabaseEnabled) {
     const { data } = await getAuthClient()
       .from("users")
-      .select("nickname")
+      .select("id, nickname")
       .eq("email", email)
       .maybeSingle();
-    return data ? { nickname: data.nickname, email } : null;
+    return data ? { id: data.id, nickname: data.nickname, email } : null;
   }
+  // в резервном файле id нет: личные данные показываем как у демо-пользователя
   const found = readUsers().find((u) => u.email === email);
-  return found ? { nickname: found.nickname, email: found.email } : null;
+  return found ? { id: 1, nickname: found.nickname, email: found.email } : null;
 }
 
 // «войти»: кладём email в сессию и отдаём ответ с Set-Cookie

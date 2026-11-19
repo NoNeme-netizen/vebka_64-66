@@ -1,10 +1,11 @@
 // Коллекция пользователя: какие версии есть, какие у друзей,
 // заметки о состоянии коробок и личные оценки.
 
-import { Link } from "react-router";
+import { Link, useLoaderData } from "react-router";
 import type { Route } from "./+types/collection";
-import { games } from "~/data/games";
-import { collection } from "~/data/people";
+import { getUser } from "~/auth.server";
+import { loadGames, loadCollection } from "~/db.server";
+import PrivateGate from "~/components/PrivateGate";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -13,15 +14,30 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+// данные страницы зависят от пользователя: гость видит предложение войти,
+// вошедший — свою коллекцию из базы (или резерва)
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await getUser(request);
+  if (!user) return { user: null, rows: [], total: 6 };
+  const [games, collection] = await Promise.all([
+    loadGames(),
+    loadCollection(user.id),
+  ]);
+  const rows = collection.flatMap((c) => {
+    const game = games.find((g) => g.slug === c.slug);
+    return game ? [{ ...c, game }] : [];
+  });
+  return { user, rows, total: games.length };
+}
+
 export default function Collection() {
-  // находим полную информацию о версии по slug
-  const rows = collection.map((c) => ({
-    ...c,
-    game: games.find((g) => g.slug === c.slug)!,
-  }));
+  const { user, rows, total } = useLoaderData<typeof loader>();
+
+  // незарегистрированному чужая коллекция не показывается
+  if (!user) return <PrivateGate what="Моя коллекция" />;
 
   const have = rows.filter((r) => r.ok).length;
-  const percent = Math.round((rows.length / games.length) * 100);
+  const percent = Math.round((rows.length / total) * 100);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -85,14 +101,14 @@ export default function Collection() {
       {/* прогресс сбора версий */}
       <div className="card p-5 mt-6">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-bold">В коллекции {have} из {games.length} версий</span>
+          <span className="font-bold">В коллекции {have} из {total} версий</span>
           <span className="text-muted">{percent}%</span>
         </div>
         <div className="h-3 rounded-full bg-white border-2 border-ink mt-3">
           <div className="h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />
         </div>
         <p className="text-xs text-muted mt-2">
-          Ещё {games.length - have} {games.length - have === 1 ? "версия" : "версии"} — у друзей или в магазине.
+          Ещё {total - have} {total - have === 1 ? "версия" : "версии"} — у друзей или в магазине.
         </p>
       </div>
     </div>

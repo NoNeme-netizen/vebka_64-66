@@ -154,7 +154,7 @@ export function loadReviewsBySlug(): Promise<Record<string, Review[]>> {
 }
 
 // ---------- коллекция пользователя ----------
-export function loadCollection(): Promise<
+export function loadCollection(userId: number = 1): Promise<
   (CollectionItem & { game: GameVersion })[]
 > {
   return withFallback(
@@ -165,7 +165,7 @@ export function loadCollection(): Promise<
       const { data, error } = await sb()
         .from("collection_items")
         .select("status, note, rating, game_versions(slug)")
-        .eq("user_id", 1)
+        .eq("user_id", userId)
         .order("id");
       if (error)
         throw new Error(`не удалось прочитать коллекцию (${error.message})`);
@@ -184,41 +184,55 @@ export function loadCollection(): Promise<
       });
     },
     () =>
-      localCollection.map((c, index) => ({
-        ...c,
-        game: localGames.find((g) => g.slug === c.slug)!,
-        id: index + 1,
-      })),
+      // в резервном режиме личные данные показываются только у демо-пользователя
+      userId === 1
+        ? localCollection.map((c, index) => ({
+            ...c,
+            game: localGames.find((g) => g.slug === c.slug)!,
+            id: index + 1,
+          }))
+        : [],
   );
 }
 
 // ---------- друзья ----------
-export function loadFriends(): Promise<Friend[]> {
+export function loadFriends(userId: number = 1): Promise<Friend[]> {
   return withFallback(
     "не удалось прочитать друзей",
     async () => {
+      // друзья читаются из таблицы friendships: связи текущего пользователя
       const { data, error } = await sb()
-        .from("users")
-        .select("id, nickname, avatar_color, status_text, can_invite")
-        .gte("id", 2)
-        .lte("id", 7)
-        .order("id");
+        .from("friendships")
+        .select(
+          "friend_id, users!friend_id(nickname, avatar_color, status_text, can_invite)",
+        )
+        .eq("user_id", userId)
+        .eq("status", "принята")
+        .order("friend_id");
       if (error)
         throw new Error(`не удалось прочитать друзей (${error.message})`);
 
-      return (data ?? []).map((u) => ({
-        id: u.id,
-        initials: u.nickname
-          .split(" ")
-          .map((w: string) => w[0])
-          .join("")
-          .toUpperCase(),
-        color: u.avatar_color,
-        name: u.nickname,
-        status: u.status_text ?? "",
-        canInvite: Boolean(u.can_invite),
-      }));
+      return (data ?? []).map((row) => {
+        const u = one(
+          row.users as
+            | { nickname: string; avatar_color: string; status_text: string | null; can_invite: boolean }
+            | { nickname: string; avatar_color: string; status_text: string | null; can_invite: boolean }[]
+            | null,
+        );
+        return {
+          id: row.friend_id,
+          initials: (u?.nickname ?? "?")
+            .split(" ")
+            .map((w: string) => w[0])
+            .join("")
+            .toUpperCase(),
+          color: u?.avatar_color ?? "#4066B0",
+          name: u?.nickname ?? "?",
+          status: u?.status_text ?? "",
+          canInvite: Boolean(u?.can_invite),
+        };
+      });
     },
-    () => localFriends,
+    () => (userId === 1 ? localFriends : []),
   );
 }
