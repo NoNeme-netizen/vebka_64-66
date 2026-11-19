@@ -9,16 +9,21 @@
 - **Карточка версии** — фото коробки, характеристики, описание, отзывы;
 - **Слепой пикер** — случайный выбор версии с анимацией колеса;
 - **Коллекция** — учёт своих коробок с заметками и оценками;
-- **Вход и регистрация** (интерфейс форм);
-- **Друзья** — список друзей, заявки, «Позвать играть», приглашение по ссылке.
+- **Друзья** — список друзей, заявки, «Позвать играть», приглашение по ссылке;
+- **Вход и регистрация** — аккаунты хранятся в базе, пароли только в виде
+  хэша, сессия — в подписанной httpOnly-cookie.
+
+Оформление — «карточный нео-брутализм»: крафт-бумага, жёлтый акцент,
+чёрные контуры с жёсткими тенями, наклон карточек как карт на столе.
 
 ## Стек
 
-- React 19 + React Router v7 (framework mode) — интерфейс и маршрутизация;
+- React 19 + React Router 8 (framework mode, серверный рендеринг);
 - TypeScript — статическая типизация;
-- Tailwind CSS v4 — стилизация;
+- Tailwind CSS v4 (палитра и фирменные классы через `@theme` в `app/app.css`);
 - Vite — сборка;
-- SQLite — база данных (`db/munchkin_picker.db`, схема в `db/schema.sql`).
+- Supabase (PostgreSQL) — облачная база данных;
+- Node.js 24, Docker, nginx — продакшен-окружение.
 
 ## Запуск
 
@@ -29,6 +34,9 @@ npm run build    # production-сборка в папку build/
 npm start        # запуск собранного приложения
 ```
 
+Переменные окружения — по образцу `.env.example`
+(`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SESSION_SECRET`).
+
 ## Структура
 
 ```
@@ -36,38 +44,49 @@ app/
   assets/boxes/   фото коробок версий
   components/     переиспользуемые компоненты (Header, Footer, GameCard)
     ui/           простые UI-элементы (Button)
-  data/           данные о версиях, коллекции и друзьях (имитация таблиц БД)
+  data/           локальный резерв данных (используется без Supabase)
   hooks/          кастомные хуки (usePicker — логика колеса Слепого пикера)
   routes/         страницы приложения
   types/          TypeScript-интерфейсы сущностей
-db/
-  munchkin_picker.db  база данных SQLite
-  schema.sql          DDL-схема
+db/               SQL-скрипты создания базы (см. «База данных»)
+public/           favicon.ico, robots.txt, sitemap.xml
+.github/workflows/build.yml   CI: проверка типов, сборка и публикация образа
 ```
 
 ## База данных
 
-Приложение работает с облачной базой **Supabase** (PostgreSQL): схема и
+Основной источник данных — облачная база **Supabase** (PostgreSQL):
+схема из 8 таблиц (users, game_versions, tags, version_tags, reviews,
+collection_items, friendships, game_invitations), RLS-политики и
 демонстрационные данные — в `db/supabase_schema.sql` (выполняется в
 SQL Editor проекта Supabase). Подключение — через переменные окружения
-`SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY` (см. `.env.example`):
-каталог, отзывы, коллекция, друзья и аккаунты читаются из базы на сервере.
-Без заданных переменных приложение использует локальные данные из
-`app/data` — так проект можно запускать без интернета.
+`SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY`: каталог, отзывы, коллекция,
+друзья и аккаунты читаются из базы на сервере.
 
-## База данных (локальные файлы)
+Без заданных переменных или при недоступности облака приложение
+автоматически переходит на локальный резерв `app/data` (сообщение о
+источнике данных выводится в журнал) — проект работает без интернета.
 
-Схема из 8 таблиц: users, game_versions, tags, version_tags,
-reviews, collection_items, friendships, game_invitations.
-ER-диаграмма и описание — в отчёте по практике 61-63.
+Дополнительные SQL-скрипты: `db/munchkin_picker_mssql.sql` — T-SQL для
+Microsoft SQL Server (SSMS); `db/schema.sql` — схема SQLite (история
+занятий 61-63).
 
-Файлы базы данных:
+## CI и образ
 
-- `db/munchkin_picker.db` — база SQLite (используется проектом);
-- `db/schema.sql` — DDL-схема SQLite;
-- `db/munchkin_picker_mssql.sql` — T-SQL-скрипт для Microsoft SQL Server
-  (SSMS): создаёт базу `munchkin_picker`, все таблицы с ограничениями
-  целостности и демонстрационные данные; запускается целиком по F5.
+GitHub Actions (`.github/workflows/build.yml`) при каждом push и Pull
+Request проверяет типы TypeScript, а после слияния в `main` собирает
+Docker-образ и публикует его в GitHub Container Registry:
+`ghcr.io/noneme-netizen/vebka_64-66:latest`. Ручной запуск —
+workflow_dispatch.
+
+## Деплой
+
+Репетиция деплоя (nginx как единая точка входа, HTTPS mkcert,
+контейнеры) вынесена в отдельный репозиторий:
+https://github.com/NoNeme-netizen/vebka_64-66-deploy — он скачивает
+готовый образ из GHCR. Обновление версии приложения:
+`docker compose pull` и `docker compose up -d` (в PowerShell 5.1 —
+по очереди).
 
 ---
 
