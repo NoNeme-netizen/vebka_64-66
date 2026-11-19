@@ -92,14 +92,25 @@ export async function getUser(request: Request): Promise<SessionUser | null> {
   const email = session.get("email") as string | undefined;
   if (!email) return null;
 
-  // ник и id берём из хранилища аккаунтов (Supabase или локальный файл)
+  // ник и id берём из хранилища аккаунтов (Supabase или локальный файл);
+  // запрос обёрнут в try/catch: недоступность базы не должна ронять страницы
   if (supabaseEnabled) {
-    const { data } = await getAuthClient()
-      .from("users")
-      .select("id, nickname")
-      .eq("email", email)
-      .maybeSingle();
-    return data ? { id: data.id, nickname: data.nickname, email } : null;
+    try {
+      const { data, error } = await getAuthClient()
+        .from("users")
+        .select("id, nickname")
+        .eq("email", email)
+        .maybeSingle();
+      if (error) throw new Error(error.message);
+      return data
+        ? { id: data.id, nickname: data.nickname, email }
+        : null; // аккаунт удалён из базы — считаем гостем
+    } catch (e) {
+      console.warn(
+        `[БД] Supabase: не удалось прочитать пользователя (${(e as Error).message}) — проверка по локальному файлу`,
+      );
+      // падение ниже только если аккаунта нет и в локальном файле
+    }
   }
   // в резервном файле id нет: личные данные показываем как у демо-пользователя
   const found = readUsers().find((u) => u.email === email);
