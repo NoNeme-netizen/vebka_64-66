@@ -27,7 +27,8 @@ jobs:
       # зависимости ставим точно по package-lock.json
       - name: Установка зависимостей
         run: npm ci
-      # проверка типов: npm run сам добавляет node_modules/.bin в PATH
+      # проверка типов: если в коде ошибка — задача упадёт
+      # (npm run сам добавляет node_modules/.bin в PATH — работает на любом образе раннера)
       - name: Проверка типов TypeScript
         run: npm run typecheck
 
