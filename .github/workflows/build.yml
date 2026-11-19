@@ -27,10 +27,9 @@ jobs:
       # зависимости ставим точно по package-lock.json
       - name: Установка зависимостей
         run: npm ci
-      # проверка типов: если в коде ошибка — задача упадёт
+      # проверка типов: npm run сам добавляет node_modules/.bin в PATH
       - name: Проверка типов TypeScript
-      run: npm run typecheck
-
+        run: npm run typecheck
 
   # вторая задача — сборка Docker-образа и публикация в GHCR;
   # начинается только после успешной проверки типов и только на push
