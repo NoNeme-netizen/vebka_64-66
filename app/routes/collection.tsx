@@ -27,24 +27,24 @@ export default function Collection() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Моя коллекция</h1>
+          <h1 className="text-4xl font-black tracking-tight">Моя коллекция</h1>
           <p className="text-muted text-sm mt-1">
             Отмечайте версии, которые есть у вас, — и не ройтесь в коробках перед игрой.
           </p>
         </div>
         <Link
           to="/catalog"
-          className="px-5 h-10 rounded-md bg-accent text-white text-sm font-bold grid place-items-center hover:bg-accent/90"
+          className="btn-hard bg-accent px-5 h-10 text-sm"
         >
           Добавить версию
         </Link>
       </div>
 
       {/* таблица коллекции */}
-      <div className="bg-white border border-line rounded-lg mt-6 overflow-hidden">
+      <div className="card mt-6 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-[#fafaf8] text-[10px] text-muted text-left">
+            <tr className="bg-soft text-[10px] text-muted text-left">
               <th className="px-6 py-3 font-bold">ВЕРСИЯ</th>
               <th className="px-4 py-3 font-bold w-32">СТАТУС</th>
               <th className="px-4 py-3 font-bold">ЗАМЕТКА О КОРОБКЕ</th>
@@ -53,12 +53,12 @@ export default function Collection() {
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.slug} className="border-t border-[#eeeeea]">
+              <tr key={r.slug} className="border-t border-line">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <img src={r.game.photo} alt={`Коробка: ${r.game.name}`} className="w-11 h-9 object-contain" />
                     <div>
-                      <Link to={`/catalog/${r.slug}`} className="font-bold hover:text-accent">
+                      <Link to={`/catalog/${r.slug}`} className="font-bold hover:underline">
                         {r.game.name}
                       </Link>
                       <p className="text-xs text-muted">{r.game.theme}</p>
@@ -67,8 +67,8 @@ export default function Collection() {
                 </td>
                 <td className="px-4 py-4">
                   <span
-                    className={`text-xs px-2.5 py-1 rounded-full font-bold ${
-                      r.ok ? "bg-[#e7efe4] text-[#4e6b43]" : "bg-chip text-muted"
+                    className={`text-xs px-2.5 py-1 rounded-full border-2 border-ink font-bold ${
+                      r.ok ? "bg-[#e4f3e6] text-[#2c6e38]" : "bg-white text-muted"
                     }`}
                   >
                     {r.status}
@@ -83,13 +83,13 @@ export default function Collection() {
       </div>
 
       {/* прогресс сбора версий */}
-      <div className="bg-white border border-line rounded-lg p-5 mt-6">
+      <div className="card p-5 mt-6">
         <div className="flex items-center justify-between text-sm">
           <span className="font-bold">В коллекции {have} из {games.length} версий</span>
           <span className="text-muted">{percent}%</span>
         </div>
-        <div className="h-1.5 rounded bg-[#e3e3dd] mt-3">
-          <div className="h-full rounded bg-accent" style={{ width: `${percent}%` }} />
+        <div className="h-3 rounded-full bg-white border-2 border-ink mt-3">
+          <div className="h-full rounded-full bg-accent" style={{ width: `${percent}%` }} />
         </div>
         <p className="text-xs text-muted mt-2">
           Ещё {games.length - have} {games.length - have === 1 ? "версия" : "версии"} — у друзей или в магазине.

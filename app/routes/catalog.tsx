@@ -59,19 +59,19 @@ export default function Catalog() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold">Каталог версий</h1>
+      <h1 className="text-4xl font-black tracking-tight">Каталог версий</h1>
       <p className="text-muted text-sm mt-1">
         {games.length} версий · все дополнения «Манчкина» в одном месте
       </p>
 
       <div className="flex gap-8 mt-6">
         {/* панель фильтров */}
-        <aside className="w-72 shrink-0 bg-white border border-line rounded-lg p-5 self-start">
+        <aside className="card w-72 shrink-0 p-5 self-start">
           <div className="flex items-center justify-between">
             <h2 className="font-bold">Фильтры</h2>
             {/* сброс возвращает все фильтры к «по умолчанию» */}
             <button
-              className="text-xs text-accent"
+              className="text-xs font-bold underline decoration-2 underline-offset-2"
               onClick={() => { setTheme(null); setDiff(null); setTimeIdx(1); }}
             >
               Сбросить
@@ -84,7 +84,7 @@ export default function Catalog() {
               <label key={t} className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
                   type="checkbox"
-                  className="accent-[#4066b0]"
+                  className="accent-[#ffd23f]"
                   checked={theme === t}
                   onChange={(e) => setTheme(e.target.checked ? t : null)}
                 />
@@ -100,7 +100,7 @@ export default function Catalog() {
                 <input
                   type="radio"
                   name="diff"
-                  className="accent-[#4066b0]"
+                  className="accent-[#ffd23f]"
                   checked={diff === d}
                   onChange={() => setDiff(d)}
                 />
@@ -116,7 +116,7 @@ export default function Catalog() {
                 <input
                   type="radio"
                   name="time"
-                  className="accent-[#4066b0]"
+                  className="accent-[#ffd23f]"
                   checked={timeIdx === i}
                   onChange={() => setTimeIdx(i)}
                 />
@@ -127,7 +127,7 @@ export default function Catalog() {
         </aside>
 
         {/* сетка карточек */}
-        <div className="flex-1 grid grid-cols-3 gap-6 self-start">
+        <div className="flex-1 grid grid-cols-3 gap-7 self-start tilt">
           {filtered.length > 0 ? (
             filtered.map((g) => <GameCard key={g.id} game={g} />)
           ) : (

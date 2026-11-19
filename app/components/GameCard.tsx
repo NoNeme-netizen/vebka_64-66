@@ -9,7 +9,7 @@ export default function GameCard({ game }: { game: GameVersion }) {
   return (
     <Link
       to={`/catalog/${game.slug}`}
-      className="block bg-white border border-line rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+      className="card block overflow-hidden hover:-translate-y-1 transition-transform"
     >
       {/* фото коробки на цветной подложке */}
       <div className="h-44 grid place-items-center p-3 overflow-hidden">
@@ -22,7 +22,7 @@ export default function GameCard({ game }: { game: GameVersion }) {
         />
       </div>
 
-      <div className="p-4 border-t border-line">
+      <div className="p-4 border-t-[2.5px] border-ink">
         <h2 className="font-bold text-[15px]">{game.name}</h2>
 
         {/* теги версии */}
@@ -30,7 +30,7 @@ export default function GameCard({ game }: { game: GameVersion }) {
           {game.tags.map((t) => (
             <span
               key={t}
-              className="text-[10.5px] px-2 py-0.5 rounded-full bg-chip text-muted"
+              className="chip !text-[10.5px] !px-2 !py-0"
             >
               {t}
             </span>

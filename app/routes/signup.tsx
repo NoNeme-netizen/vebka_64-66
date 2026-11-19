@@ -38,9 +38,9 @@ export default function Signup() {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-md">
-      <div className="bg-white border border-line rounded-lg p-8">
+      <div className="card p-8">
         <div className="text-center">
-          <span className="inline-grid place-items-center w-11 h-11 rounded-lg bg-accent text-white text-xl font-bold">
+          <span className="inline-grid place-items-center w-11 h-11 rounded-lg bg-accent border-[2.5px] border-ink -rotate-3 text-xl font-bold shadow-[3px_3px_0_0_#141414]">
             М
           </span>
           <h1 className="text-xl font-bold mt-3">Манчкин-пикер</h1>
@@ -53,18 +53,18 @@ export default function Signup() {
         <div className="grid grid-cols-2 gap-2 mt-6">
           <Link
             to="/login"
-            className="h-10 rounded-md bg-white border border-muted/40 text-muted text-sm grid place-items-center hover:bg-chip"
+            className="h-10 rounded-lg bg-white border-2 border-ink text-muted text-sm font-bold grid place-items-center hover:bg-soft"
           >
             Вход
           </Link>
-          <span className="h-10 rounded-md bg-soft border border-accent text-accent text-sm font-bold grid place-items-center">
+          <span className="h-10 rounded-lg bg-accent border-2 border-ink text-ink text-sm font-bold grid place-items-center">
             Регистрация
           </span>
         </div>
 
         <Form method="post" className="mt-5 space-y-4">
           {actionData?.error && (
-            <p className="text-sm font-bold text-[#9C4A4A] text-center">
+            <p className="text-sm font-bold text-[#b85c38] text-center">
               {actionData.error}
             </p>
           )}
@@ -76,7 +76,7 @@ export default function Signup() {
               required
               minLength={2}
               placeholder="как вас звать в игре"
-              className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
+              className="mt-1 w-full h-11 px-3 rounded-lg border-2 border-ink text-sm outline-none focus:border-ink/40"
             />
           </label>
 
@@ -87,7 +87,7 @@ export default function Signup() {
               name="email"
               required
               placeholder="введите email"
-              className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
+              className="mt-1 w-full h-11 px-3 rounded-lg border-2 border-ink text-sm outline-none focus:border-ink/40"
             />
           </label>
 
@@ -99,12 +99,12 @@ export default function Signup() {
               required
               minLength={6}
               placeholder="минимум 6 символов"
-              className="mt-1 w-full h-11 px-3 rounded-md border border-muted/40 text-sm outline-none focus:border-accent"
+              className="mt-1 w-full h-11 px-3 rounded-lg border-2 border-ink text-sm outline-none focus:border-ink/40"
             />
           </label>
 
           <label className="flex items-center gap-2 text-xs cursor-pointer">
-            <input type="checkbox" defaultChecked className="accent-[#4066b0]" />
+            <input type="checkbox" defaultChecked className="accent-[#ffd23f]" />
             Согласен с правилами сайта
           </label>
 
@@ -115,7 +115,7 @@ export default function Signup() {
 
         <p className="text-center text-xs text-muted mt-5">
           Уже есть аккаунт?{" "}
-          <Link to="/login" className="text-accent font-bold">
+          <Link to="/login" className="font-bold underline decoration-2 underline-offset-2">
             Войти
           </Link>
         </p>

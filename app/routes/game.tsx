@@ -46,7 +46,7 @@ export default function GamePage() {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold">Версия не найдена</h1>
-        <Link to="/catalog" className="text-accent text-sm mt-3 inline-block">
+        <Link to="/catalog" className="font-bold underline decoration-2 underline-offset-2 text-sm mt-3 inline-block">
           ← вернуться в каталог
         </Link>
       </div>
@@ -65,14 +65,14 @@ export default function GamePage() {
     <div className="container mx-auto px-4 py-8">
       {/* «хлебные крошки» */}
       <p className="text-xs text-muted">
-        <Link to="/catalog" className="hover:text-accent">Каталог</Link>
+        <Link to="/catalog" className="hover:underline">Каталог</Link>
         {" → "}{game.name}
       </p>
 
       <div className="flex gap-10 mt-4">
         {/* левая колонка: фото коробки */}
         <div className="w-[440px] shrink-0">
-          <div className="bg-white border border-line rounded-lg p-6 grid place-items-center overflow-hidden">
+          <div className="card p-6 grid place-items-center overflow-hidden -rotate-2 hover:rotate-0 transition-transform">
             <img
               src={game.photo}
               alt={game.name}
@@ -99,21 +99,21 @@ export default function GamePage() {
 
           <div className="flex flex-wrap gap-2 mt-3">
             {game.tags.map((t) => (
-              <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-chip text-muted">
+              <span key={t} className="chip !text-xs !px-2.5 !py-0.5">
                 {t}
               </span>
             ))}
           </div>
 
           <p className="mt-3">
-            <span className="text-gold font-bold text-lg">★ {game.rating}</span>
+            <span className="text-gold font-black text-xl">★ {game.rating}</span>
             <span className="text-muted text-sm ml-2">· {game.ratingsCount} оценок</span>
           </p>
 
           {/* характеристики */}
           <div className="grid grid-cols-2 gap-3 mt-5">
             {params.map(([label, value]) => (
-              <div key={label} className="bg-white border border-line rounded-lg px-4 py-3">
+              <div key={label} className="card !shadow-[4px_4px_0_0_#141414] px-4 py-3">
                 <p className="text-[11px] text-muted">{label}</p>
                 <p className="font-bold text-[15px] mt-0.5">{value}</p>
               </div>
@@ -127,11 +127,11 @@ export default function GamePage() {
             <Button>{inCollection ? "В коллекции ✓" : "В коллекцию"}</Button>
             <Link
               to="/friends"
-              className="px-5 h-11 rounded-md bg-white border border-muted/50 text-sm grid place-items-center hover:bg-soft"
+              className="btn-hard bg-white px-5 h-11 text-sm"
             >
               Позвать друзей
             </Link>
-            <Link to="/picker" className="text-sm text-accent">
+            <Link to="/picker" className="text-sm font-bold underline decoration-2 underline-offset-2">
               или крутить Слепой пикер
             </Link>
           </div>
@@ -140,9 +140,9 @@ export default function GamePage() {
           <h2 className="font-bold text-sm mt-10">Отзывы игроков</h2>
           <div className="grid grid-cols-2 gap-4 mt-3">
             {reviews.map((r) => (
-              <div key={r.id} className="bg-white border border-line rounded-lg p-4">
+              <div key={r.id} className="card !shadow-[4px_4px_0_0_#141414] p-4">
                 <div className="flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-full bg-accent text-white text-xs font-bold grid place-items-center">
+                  <span className="w-7 h-7 rounded-full bg-accent border-2 border-ink text-ink text-xs font-bold grid place-items-center">
                     {r.author[0]}
                   </span>
                   <span className="font-bold text-sm">{r.author}</span>
