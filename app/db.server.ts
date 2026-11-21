@@ -4,7 +4,13 @@
 // нет или база недоступна — используются локальные модули (app/data):
 // приложение продолжает работать в любом случае (отказоустойчивость).
 
-import type { GameVersion, Review, CollectionItem, Friend } from "~/types";
+import type {
+  GameVersion,
+  Review,
+  CollectionItem,
+  Friend,
+  FriendCandidate,
+} from "~/types";
 import { supabaseEnabled, getAuthClient as sb } from "~/supabase.server";
 import { boxes } from "~/data/boxes";
 import {
@@ -14,7 +20,14 @@ import {
 import {
   collection as localCollection,
   friends as localFriends,
+  candidates as localCandidates,
 } from "~/data/people";
+import { COLLECTION_STATUSES } from "~/data/statuses";
+
+// добавления и удаления в резервном режиме (Supabase не подключён) живут в памяти
+// процесса: кнопки работают, но после перезапуска контейнера сбрасываются
+const extraFriends: Friend[] = [];
+const fallbackCollection: CollectionItem[] = [...localCollection];
 
 // «60–90» -> «60–90 мин», «60–60» -> «60 мин», «90–150» -> «90+ мин»
 function timeLabel(min: number, max: number): string {
@@ -186,7 +199,7 @@ export function loadCollection(userId: number = 1): Promise<
     () =>
       // в резервном режиме личные данные показываются только у демо-пользователя
       userId === 1
-        ? localCollection.map((c, index) => ({
+        ? fallbackCollection.map((c, index) => ({
             ...c,
             game: localGames.find((g) => g.slug === c.slug)!,
             id: index + 1,
@@ -233,6 +246,179 @@ export function loadFriends(userId: number = 1): Promise<Friend[]> {
         };
       });
     },
-    () => (userId === 1 ? localFriends : []),
+    () => (userId === 1 ? [...localFriends, ...extraFriends] : []),
   );
+}
+
+// ---------- кого можно добавить в друзья ----------
+// уже добавленные в список не попадают, себя в списке тоже нет
+export function loadFriendCandidates(userId: number): Promise<FriendCandidate[]> {
+  return withFallback(
+    "не удалось прочитать список игроков",
+    async () => {
+      const { data: links, error: linksError } = await sb()
+        .from("friendships")
+        .select("friend_id")
+        .eq("user_id", userId);
+      if (linksError)
+        throw new Error(`не удалось прочитать друзей (${linksError.message})`);
+
+      const taken = (links ?? []).map((row) => row.friend_id);
+
+      let query = sb()
+        .from("users")
+        .select("id, nickname, avatar_color, status_text")
+        .neq("id", userId)
+        .order("id")
+        .limit(12);
+      if (taken.length > 0) {
+        query = query.not("id", "in", `(${taken.join(",")})`);
+      }
+
+      const { data, error } = await query;
+      if (error)
+        throw new Error(`не удалось прочитать список игроков (${error.message})`);
+
+      return (data ?? []).map((u) => ({
+        id: u.id,
+        initials: (u.nickname ?? "?")
+          .split(" ")
+          .map((w: string) => w[0])
+          .join("")
+          .toUpperCase(),
+        color: u.avatar_color ?? "#4066B0",
+        name: u.nickname ?? "?",
+        status: u.status_text ?? "игрок «Манчкина»",
+      }));
+    },
+    () => {
+      const taken = new Set([
+        ...localFriends.map((f) => f.id),
+        ...extraFriends.map((f) => f.id),
+      ]);
+      return localCandidates.filter((c) => !taken.has(c.id));
+    },
+  );
+}
+
+// ---------- добавить друга ----------
+// возвращает текст ошибки или null, если друг добавлен
+export async function addFriend(
+  userId: number,
+  friendId: number,
+): Promise<string | null> {
+  if (!Number.isInteger(friendId) || friendId <= 0) return "Игрок не найден";
+  if (userId === friendId) return "Себя в друзья добавить нельзя";
+
+  if (!supabaseEnabled) {
+    // резервный режим: добавляем в память процесса
+    const known = [...localFriends, ...extraFriends].some((f) => f.id === friendId);
+    if (known) return "Этот игрок уже в друзьях";
+    const candidate = localCandidates.find((c) => c.id === friendId);
+    if (!candidate) return "Игрок не найден";
+    extraFriends.push({ ...candidate, canInvite: false });
+    return null;
+  }
+
+  try {
+    // status «принята»: в учебном проекте добавление сразу создаёт дружбу
+    const { error } = await sb()
+      .from("friendships")
+      .insert({ user_id: userId, friend_id: friendId, status: "принята" });
+    if (error) {
+      // 23505 — пара уже есть (уникальный индекс user_id + friend_id)
+      if (error.code === "23505") return "Этот игрок уже в друзьях";
+      // 23514 — нарушено условие user_id <> friend_id
+      if (error.code === "23514") return "Себя в друзья добавить нельзя";
+      return "Не удалось добавить друга: " + error.message;
+    }
+    return null;
+  } catch (e) {
+    return "База недоступна: " + (e as Error).message;
+  }
+}
+
+// ---------- добавить версию в коллекцию ----------
+// возвращает текст ошибки или null, если версия добавлена
+export async function addToCollection(
+  userId: number,
+  slug: string,
+  status: string = "есть дома",
+): Promise<string | null> {
+  if (!slug) return "Версия не выбрана";
+  if (!COLLECTION_STATUSES.includes(status)) return "Неизвестный статус коллекции";
+
+  if (!supabaseEnabled) {
+    const exists = fallbackCollection.some((c) => c.slug === slug);
+    if (exists) return "Эта версия уже в коллекции";
+    const game = localGames.find((g) => g.slug === slug);
+    if (!game) return "Версия не найдена";
+    fallbackCollection.push({
+      slug,
+      status: status.charAt(0).toUpperCase() + status.slice(1),
+      ok: status === "есть дома",
+      note: "",
+      rating: "",
+    });
+    return null;
+  }
+
+  try {
+    const { data: version, error: versionError } = await sb()
+      .from("game_versions")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (versionError) throw new Error(versionError.message);
+    if (!version) return "Версия не найдена";
+
+    // upsert по уникальной паре (user_id, version_id): повторное добавление
+    // не создаёт дубль и не роняет страницу
+    const { error } = await sb()
+      .from("collection_items")
+      .upsert(
+        { user_id: userId, version_id: version.id, status },
+        { onConflict: "user_id,version_id" },
+      );
+    if (error) return "Не удалось добавить версию: " + error.message;
+    return null;
+  } catch (e) {
+    return "База недоступна: " + (e as Error).message;
+  }
+}
+
+// ---------- убрать версию из коллекции ----------
+// возвращает текст ошибки или null, если версия удалена
+export async function removeFromCollection(
+  userId: number,
+  slug: string,
+): Promise<string | null> {
+  if (!slug) return "Версия не выбрана";
+
+  if (!supabaseEnabled) {
+    const idx = fallbackCollection.findIndex((c) => c.slug === slug);
+    if (idx === -1) return "Этой версии нет в коллекции";
+    fallbackCollection.splice(idx, 1);
+    return null;
+  }
+
+  try {
+    const { data: version, error: versionError } = await sb()
+      .from("game_versions")
+      .select("id")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (versionError) throw new Error(versionError.message);
+    if (!version) return "Версия не найдена";
+
+    const { error } = await sb()
+      .from("collection_items")
+      .delete()
+      .eq("user_id", userId)
+      .eq("version_id", version.id);
+    if (error) return "Не удалось удалить версию: " + error.message;
+    return null;
+  } catch (e) {
+    return "База недоступна: " + (e as Error).message;
+  }
 }

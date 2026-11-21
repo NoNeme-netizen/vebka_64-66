@@ -2,9 +2,15 @@
 // Фильтрация выполняется на клиенте через хук useState.
 
 import { useState } from "react";
-import { useLoaderData } from "react-router";
+import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router";
 import type { Route } from "./+types/catalog";
-import { loadGames } from "~/db.server";
+import { getUser } from "~/auth.server";
+import {
+  addToCollection,
+  loadCollection,
+  loadGames,
+  removeFromCollection,
+} from "~/db.server";
 import GameCard from "~/components/GameCard";
 
 export function meta({}: Route.MetaArgs) {
@@ -34,13 +40,49 @@ const TIMES = [
   { label: "90+ мин", max: 999 },
 ];
 
-// данные каталога приходят из базы (Supabase или локальный резерв)
-export async function loader({}: Route.LoaderArgs) {
-  return { games: await loadGames() };
+// данные каталога приходят из базы (Supabase или локальный резерв);
+// для вошедшего пользователя дополнительно читаем его коллекцию,
+// чтобы на карточках отметить уже добавленные версии
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await getUser(request);
+  const [games, collection] = await Promise.all([
+    loadGames(),
+    user ? loadCollection(user.id) : Promise.resolve([]),
+  ]);
+  return {
+    games,
+    collected: collection.map((c) => c.slug),
+    signedIn: Boolean(user),
+  };
+}
+
+// добавление или удаление версии в коллекцию прямо из каталога
+export async function action({ request }: Route.ActionArgs) {
+  const user = await getUser(request);
+  if (!user) return { ok: false, error: "Сначала войдите в аккаунт", message: null };
+
+  const form = await request.formData();
+  const intent = String(form.get("intent") ?? "add");
+  const slug = String(form.get("slug") ?? "");
+
+  if (intent === "remove") {
+    const error = await removeFromCollection(user.id, slug);
+    return error
+      ? { ok: false, error, message: null }
+      : { ok: true, error: null, message: "Версия удалена из коллекции" };
+  }
+
+  const error = await addToCollection(user.id, slug, "есть дома");
+  return error
+    ? { ok: false, error, message: null }
+    : { ok: true, error: null, message: "Версия добавлена в коллекцию ✓" };
 }
 
 export default function Catalog() {
-  const { games } = useLoaderData<typeof loader>();
+  const { games, collected, signedIn } = useLoaderData<typeof loader>();
+  const result = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const adding = navigation.state === "submitting";
 
   // состояния фильтров
   const [theme, setTheme] = useState<string | null>(null);
@@ -63,6 +105,17 @@ export default function Catalog() {
       <p className="text-muted text-sm mt-1">
         {games.length} версий · все дополнения «Манчкина» в одном месте
       </p>
+
+      {/* сообщение после добавления или удаления из коллекции */}
+      {result && (
+        <p
+          className={`mt-4 text-sm font-bold ${
+            result.ok ? "text-[#4e6b43]" : "text-[#9C4A4A]"
+          }`}
+        >
+          {result.ok ? result.message : result.error}
+        </p>
+      )}
 
       <div className="flex gap-8 mt-6">
         {/* панель фильтров */}
@@ -129,7 +182,51 @@ export default function Catalog() {
         {/* сетка карточек */}
         <div className="flex-1 grid grid-cols-3 gap-7 self-start tilt">
           {filtered.length > 0 ? (
-            filtered.map((g) => <GameCard key={g.id} game={g} />)
+            filtered.map((g) => (
+              <GameCard
+                key={g.id}
+                game={g}
+                footer={
+                  !signedIn ? (
+                    <Link
+                      to="/login"
+                      className="btn-hard bg-white w-full h-9 text-xs"
+                    >
+                      Войдите, чтобы добавить
+                    </Link>
+                  ) : collected.includes(g.slug) ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-[#4e6b43]">
+                        В коллекции ✓
+                      </span>
+                      <Form method="post">
+                        <input type="hidden" name="intent" value="remove" />
+                        <input type="hidden" name="slug" value={g.slug} />
+                        <button
+                          type="submit"
+                          disabled={adding}
+                          className="btn-hard bg-white px-3 h-8 text-xs disabled:opacity-60"
+                        >
+                          Удалить
+                        </button>
+                      </Form>
+                    </div>
+                  ) : (
+                    <Form method="post">
+                      <input type="hidden" name="intent" value="add" />
+                      <input type="hidden" name="slug" value={g.slug} />
+                      <button
+                        type="submit"
+                        disabled={adding}
+                        className="btn-hard bg-accent w-full h-9 text-xs disabled:opacity-60"
+                      >
+                        В коллекцию
+                      </button>
+                    </Form>
+                  )
+                }
+              />
+            ))
           ) : (
             <p className="text-muted col-span-3 py-16 text-center">
               Ничего не нашлось — попробуйте смягчить фильтры.
