@@ -1,7 +1,7 @@
 // Данные коллекции и друзей (имитация таблиц collection_items,
 // friendships из БД). Используются на страницах «Коллекция» и «Друзья».
 
-import type { CollectionItem, Friend } from "~/types";
+import type { CollectionItem, Friend, FriendCandidate } from "~/types";
 
 export const collection: CollectionItem[] = [
   {
@@ -41,4 +41,13 @@ export const friends: Friend[] = [
   { id: 4, initials: "МВ", color: "#8A7355", name: "Максим В.", status: "был(а) 2 часа назад", canInvite: false },
   { id: 5, initials: "СЛ", color: "#D9A441", name: "Соня Л.", status: "была вчера", canInvite: false },
   { id: 6, initials: "ЛТ", color: "#B85C38", name: "Лёша Т.", status: "онлайн · смотрит каталог", canInvite: true },
+];
+
+// Игроки, которых можно добавить в друзья в резервном режиме
+// (когда Supabase не подключён). В базе этот список — таблица users.
+export const candidates: FriendCandidate[] = [
+  { id: 11, initials: "РШ", color: "#8C6A8C", name: "Рома Ш.", status: "онлайн · 3 общих друга" },
+  { id: 12, initials: "АГ", color: "#4A7E8C", name: "Алина Г.", status: "была вчера" },
+  { id: 13, initials: "ТБ", color: "#6E8A5A", name: "Тимур Б.", status: "онлайн · готов играть" },
+  { id: 14, initials: "ЕС", color: "#9C4A4A", name: "Женя С.", status: "был(а) 3 дня назад" },
 ];

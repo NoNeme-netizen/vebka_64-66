@@ -46,3 +46,12 @@ export interface Friend {
   status: string; // текст статуса («онлайн», «играет в …»)
   canInvite: boolean; // можно ли позвать играть прямо сейчас
 }
+
+// Игрок, которого можно добавить в друзья (страница «Друзья»)
+export interface FriendCandidate {
+  id: number;
+  initials: string;
+  color: string;
+  name: string;
+  status: string;
+}
