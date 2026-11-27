@@ -1,23 +1,57 @@
 // Карточка версии игры: /catalog/:slug
 // Страница полностью строится из данных базы (Supabase или локальный резерв).
 
-import { Link, useParams, useLoaderData } from "react-router";
+import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router";
 import type { Route } from "./+types/game";
-import { loadGames, loadReviewsBySlug, loadCollection } from "~/db.server";
+import { getUser } from "~/auth.server";
+import {
+  addToCollection,
+  loadCollection,
+  loadGames,
+  loadReviewsBySlug,
+  removeFromCollection,
+} from "~/db.server";
 import { boxSizes } from "~/data/games";
 import Button from "~/components/ui/Button";
 
-// данные версии, её отзывов и наличия в коллекции приходят из базы
-export async function loader({ params }: Route.LoaderArgs) {
+// данные версии, её отзывов и наличия в коллекции текущего пользователя
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const user = await getUser(request);
   const games = await loadGames();
   const game = games.find((g) => g.slug === params.slug);
-  const reviews = game ? (await loadReviewsBySlug())[game.slug] ?? [] : [];
-  const collection = await loadCollection();
+  const [reviewsBySlug, collection] = await Promise.all([
+    game ? loadReviewsBySlug() : Promise.resolve({} as Record<string, never[]>),
+    user ? loadCollection(user.id) : Promise.resolve([]),
+  ]);
+  const reviews = game ? reviewsBySlug[game.slug] ?? [] : [];
   return {
     game,
     reviews,
+    signedIn: Boolean(user),
     inCollection: collection.some((c) => c.slug === params.slug),
   };
+}
+
+// добавление или удаление версии в коллекции со страницы игры
+export async function action({ params, request }: Route.ActionArgs) {
+  const user = await getUser(request);
+  if (!user) return { ok: false, error: "Сначала войдите в аккаунт", message: null };
+
+  const slug = String(params.slug ?? "");
+  const form = await request.formData();
+  const intent = String(form.get("intent") ?? "add");
+
+  if (intent === "remove") {
+    const error = await removeFromCollection(user.id, slug);
+    return error
+      ? { ok: false, error, message: null }
+      : { ok: true, error: null, message: "Версия удалена из коллекции" };
+  }
+
+  const error = await addToCollection(user.id, slug, "есть дома");
+  return error
+    ? { ok: false, error, message: null }
+    : { ok: true, error: null, message: "Версия добавлена в коллекцию ✓" };
 }
 
 export function meta({ matches }: Route.MetaArgs) {
@@ -38,8 +72,10 @@ export function meta({ matches }: Route.MetaArgs) {
 }
 
 export default function GamePage() {
-  const { slug } = useParams();
-  const { game, reviews, inCollection } = useLoaderData<typeof loader>();
+  const { game, reviews, signedIn, inCollection } = useLoaderData<typeof loader>();
+  const result = useActionData<typeof action>();
+  const navigation = useNavigation();
+  const busy = navigation.state === "submitting";
 
   // если адрес неверный — показываем заглушку
   if (!game) {
@@ -123,8 +159,29 @@ export default function GamePage() {
           <p className="mt-5 leading-relaxed">{game.description}</p>
 
           {/* действия */}
-          <div className="flex items-center gap-3 mt-6">
-            <Button>{inCollection ? "В коллекции ✓" : "В коллекцию"}</Button>
+          <div className="flex flex-wrap items-center gap-3 mt-6">
+            {!signedIn ? (
+              <Link to="/login" className="btn-hard bg-accent px-5 h-11 text-sm">
+                Войдите, чтобы добавить
+              </Link>
+            ) : inCollection ? (
+              <Form method="post" className="flex items-center gap-2">
+                <input type="hidden" name="intent" value="remove" />
+                <span className="text-sm font-bold text-[#4e6b43] px-2">
+                  В коллекции ✓
+                </span>
+                <Button type="submit" variant="secondary" disabled={busy}>
+                  Удалить из коллекции
+                </Button>
+              </Form>
+            ) : (
+              <Form method="post">
+                <input type="hidden" name="intent" value="add" />
+                <Button type="submit" disabled={busy}>
+                  В коллекцию
+                </Button>
+              </Form>
+            )}
             <Link
               to="/friends"
               className="btn-hard bg-white px-5 h-11 text-sm"
@@ -135,6 +192,16 @@ export default function GamePage() {
               или крутить Слепой пикер
             </Link>
           </div>
+
+          {result && (
+            <p
+              className={`mt-3 text-sm font-bold ${
+                result.ok ? "text-[#4e6b43]" : "text-[#9C4A4A]"
+              }`}
+            >
+              {result.ok ? result.message : result.error}
+            </p>
+          )}
 
           {/* отзывы */}
           <h2 className="font-bold text-sm mt-10">Отзывы игроков</h2>
