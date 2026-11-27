@@ -49,6 +49,7 @@ type VersionRow = {
   difficulty: string;
   age_limit: number;
   description: string;
+  photo_path?: string | null;
   box_contents: string[];
   rating: number;
   ratings_count: number;
@@ -69,7 +70,9 @@ function toGameVersion(row: VersionRow, tags: string[]): GameVersion {
     ratingsCount: row.ratings_count,
     description: row.description,
     box: row.box_contents ?? [],
-    photo: boxes[row.slug],
+    // если в БД записан полный URL из Supabase Storage — берём его;
+    // иначе используем локальный ассет из сборки как резерв
+    photo: row.photo_path?.startsWith("http") ? row.photo_path : boxes[row.slug],
   };
 }
 
