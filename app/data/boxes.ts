@@ -1,11 +1,11 @@
-// Фотографии коробок: единая точка подключения картинок.
-// Vite сам подставит правильные пути при сборке проекта.
-import origUrl from "../assets/boxes/orig.png";
-import vampUrl from "../assets/boxes/vamp.png";
-import rusUrl from "../assets/boxes/rus.png";
-import zombUrl from "../assets/boxes/zomb.png";
-import pirateUrl from "../assets/boxes/pirate.png";
-import apocUrl from "../assets/boxes/apoc.png";
+// Фотографии коробок (резервные локальные WebP для режима без БД).
+// При подключённом Supabase ссылки берутся из таблицы game_versions (Storage).
+import origUrl from "../assets/boxes/orig.webp";
+import vampUrl from "../assets/boxes/vamp.webp";
+import rusUrl from "../assets/boxes/rus.webp";
+import zombUrl from "../assets/boxes/zomb.webp";
+import pirateUrl from "../assets/boxes/pirate.webp";
+import apocUrl from "../assets/boxes/apoc.webp";
 
 // фото ищутся по slug версии из базы данных
 export const boxes: Record<string, string> = {

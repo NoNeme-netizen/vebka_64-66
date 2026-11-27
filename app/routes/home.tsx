@@ -78,8 +78,8 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-3 gap-7 tilt">
-        {popular.map((g) => (
-          <GameCard key={g.id} game={g} />
+        {popular.map((g, i) => (
+          <GameCard key={g.id} game={g} priority={i === 0} />
         ))}
       </div>
     </div>

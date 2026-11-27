@@ -207,7 +207,7 @@ export default function Collection() {
           <thead>
             <tr className="bg-soft text-[10px] text-muted text-left">
               <th className="px-6 py-3 font-bold">ВЕРСИЯ</th>
-              <th className="px-4 py-3 font-bold w-32">СТАТУС</th>
+              <th className="px-4 py-3 font-bold w-36">СТАТУС</th>
               <th className="px-4 py-3 font-bold">ЗАМЕТКА О КОРОБКЕ</th>
               <th className="px-4 py-3 font-bold w-24 text-right">ОЦЕНКА</th>
               <th className="px-4 py-3 font-bold w-28 text-right">ДЕЙСТВИЕ</th>
@@ -238,7 +238,7 @@ export default function Collection() {
                   </td>
                   <td className="px-4 py-4">
                     <span
-                      className={`text-xs px-2.5 py-1 rounded-full border-2 border-ink font-bold ${
+                      className={`inline-block whitespace-nowrap text-xs px-2.5 py-1 rounded-full border-2 border-ink font-bold ${
                         r.ok ? "bg-[#e4f3e6] text-[#2c6e38]" : "bg-white text-muted"
                       }`}
                     >

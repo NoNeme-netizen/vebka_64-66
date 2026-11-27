@@ -8,12 +8,12 @@ import { boxes } from "./boxes";
 // размеры фотографий коробок: подставляются в атрибуты width/height,
 // чтобы браузер резервировал место под картинку до её загрузки
 export const boxSizes: Record<string, { w: number; h: number }> = {
-  orig: { w: 326, h: 488 },
-  vamp: { w: 400, h: 598 },
-  rus: { w: 401, h: 605 },
-  zomb: { w: 364, h: 534 },
-  pirate: { w: 257, h: 390 },
-  apoc: { w: 410, h: 598 },
+  orig: { w: 227, h: 340 },
+  vamp: { w: 227, h: 340 },
+  rus: { w: 225, h: 340 },
+  zomb: { w: 232, h: 340 },
+  pirate: { w: 224, h: 340 },
+  apoc: { w: 233, h: 340 },
 };
 
 export const games: GameVersion[] = [

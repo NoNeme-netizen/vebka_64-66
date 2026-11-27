@@ -71,6 +71,8 @@ export default function Header({
             <span className="font-bold">Гость</span>
             <Link
               to="/login"
+              aria-label="Войти в аккаунт"
+              title="Войти в аккаунт"
               className="w-8 h-8 rounded-full border-2 border-ink grid place-items-center hover:bg-soft"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
