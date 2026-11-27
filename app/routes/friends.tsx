@@ -14,6 +14,7 @@ import PrivateGate from "~/components/PrivateGate";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Друзья — Манчкин-пикер" },
+    { name: "robots", content: "noindex" },
     {
       name: "description",
       content:

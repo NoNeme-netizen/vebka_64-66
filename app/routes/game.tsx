@@ -114,6 +114,7 @@ export default function GamePage() {
               alt={game.name}
               width={boxSizes[game.slug].w}
               height={boxSizes[game.slug].h}
+              fetchPriority="high"
               className="max-h-72 w-auto max-w-full object-contain"
             />
           </div>

@@ -1,8 +1,8 @@
 # Манчкин-пикер: правила для поисковых роботов
+# Страницы с метатегом noindex (/login, /signup, /collection, /friends)
+# не закрываем в Disallow, чтобы робот мог их загрузить и увидеть noindex.
 User-agent: *
-# личный кабинет и формы авторизации — не для поисковой выдачи
-Disallow: /login
-Disallow: /signup
-Disallow: /collection
+Allow: /
+Disallow: /logout
 
 Sitemap: https://munchkin-picker.ru/sitemap.xml

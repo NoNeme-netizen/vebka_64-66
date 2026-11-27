@@ -10,9 +10,11 @@ import { boxSizes } from "~/data/games";
 export default function GameCard({
   game,
   footer,
+  priority = false,
 }: {
   game: GameVersion;
   footer?: ReactNode;
+  priority?: boolean;
 }) {
   return (
     <div className="card overflow-hidden hover:-translate-y-1 transition-transform">
@@ -24,6 +26,7 @@ export default function GameCard({
             alt={game.name}
             width={boxSizes[game.slug].w}
             height={boxSizes[game.slug].h}
+            fetchPriority={priority ? "high" : undefined}
             className="max-h-36 w-auto max-w-full object-contain"
           />
         </div>

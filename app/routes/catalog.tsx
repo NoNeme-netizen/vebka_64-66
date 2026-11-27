@@ -182,10 +182,11 @@ export default function Catalog() {
         {/* сетка карточек */}
         <div className="flex-1 grid grid-cols-3 gap-7 self-start tilt">
           {filtered.length > 0 ? (
-            filtered.map((g) => (
+            filtered.map((g, i) => (
               <GameCard
                 key={g.id}
                 game={g}
+                priority={i === 0}
                 footer={
                   !signedIn ? (
                     <Link
