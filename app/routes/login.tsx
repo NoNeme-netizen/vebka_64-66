@@ -1,7 +1,4 @@
 // Страница входа: форма с email и паролем.
-// Отправка уходит в action: сервер проверяет пару email+пароль
-// по файлу аккаунтов и «входит» — кладёт email в сессию-cookie.
-
 import { Form, Link, useActionData } from "react-router";
 import type { Route } from "./+types/login";
 import Button from "~/components/ui/Button";
@@ -10,27 +7,22 @@ import { checkUser, createUserSession } from "~/auth.server";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Вход — Манчкин-пикер" },
-    // личный кабинет и формы авторизации не для поисковой выдачи
     { name: "robots", content: "noindex" },
   ];
 }
 
-// выполняется на сервере при отправке формы (method="post")
 export async function action({ request }: Route.ActionArgs) {
   const form = await request.formData();
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
 
-  // проверяем данные: вернётся текст ошибки или null
   const error = await checkUser(email, password);
   if (error) return { error };
 
-  // успех: запоминаем пользователя в сессии и возвращаем на главную
   return createUserSession(email, "/");
 }
 
 export default function Login() {
-  // ошибка, возвращённая action (если вход не удался)
   const actionData = useActionData<typeof action>();
 
   return (

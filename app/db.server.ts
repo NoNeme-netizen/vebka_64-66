@@ -1,9 +1,4 @@
 // Серверный доступ к данным приложения.
-// Если заданы переменные окружения SUPABASE_URL и SUPABASE_SERVICE_ROLE_KEY,
-// данные читаются из облачной базы Supabase (PostgreSQL). Если конфигурации
-// нет или база недоступна — используются локальные модули (app/data):
-// приложение продолжает работать в любом случае (отказоустойчивость).
-
 import type {
   GameVersion,
   Review,
@@ -24,19 +19,15 @@ import {
 } from "~/data/people";
 import { COLLECTION_STATUSES } from "~/data/statuses";
 
-// добавления и удаления в резервном режиме (Supabase не подключён) живут в памяти
-// процесса: кнопки работают, но после перезапуска контейнера сбрасываются
 const extraFriends: Friend[] = [];
 const fallbackCollection: CollectionItem[] = [...localCollection];
 
-// «60–90» -> «60–90 мин», «60–60» -> «60 мин», «90–150» -> «90+ мин»
 function timeLabel(min: number, max: number): string {
   if (min === max) return `${min} мин`;
   if (min >= 90) return `${min}+ мин`;
   return `${min}–${max} мин`;
 }
 
-// строка БД game_versions -> объект интерфейса GameVersion
 type VersionRow = {
   id: number;
   slug: string;
@@ -70,21 +61,17 @@ function toGameVersion(row: VersionRow, tags: string[]): GameVersion {
     ratingsCount: row.ratings_count,
     description: row.description,
     box: row.box_contents ?? [],
-    // если в БД записан полный URL из Supabase Storage — берём его;
-    // иначе используем локальный ассет из сборки как резерв
+
     photo: row.photo_path?.startsWith("http") ? row.photo_path : boxes[row.slug],
   };
 }
 
-// PostgREST отдаёт встроенную запись объектом или массивом (зависит от
-// типа связи); приводим оба варианта к одному объекту
 function one<T>(embedded: T | T[] | null | undefined): T | null {
   if (Array.isArray(embedded)) return embedded[0] ?? null;
   return embedded ?? null;
 }
 
-// обёртка: пробует запрос к Supabase; при ошибке — предупреждение
-// в терминал и локальные данные (сайт не падает)
+
 async function withFallback<T>(
   what: string,
   operation: () => Promise<T>,
@@ -100,8 +87,6 @@ async function withFallback<T>(
     return fallback();
   }
 }
-
-// ---------- каталог версий ----------
 export function loadGames(): Promise<GameVersion[]> {
   return withFallback(
     "не удалось прочитать каталог",
@@ -113,7 +98,6 @@ export function loadGames(): Promise<GameVersion[]> {
       if (error)
         throw new Error(`не удалось прочитать каталог (${error.message})`);
 
-      // теги версий отдельным запросом и группировкой
       const { data: links, error: linksError } = await sb()
         .from("version_tags")
         .select("version_id, tags(name)");
@@ -137,7 +121,6 @@ export function loadGames(): Promise<GameVersion[]> {
   );
 }
 
-// ---------- отзывы по версиям ----------
 export function loadReviewsBySlug(): Promise<Record<string, Review[]>> {
   return withFallback(
     "не удалось прочитать отзывы",
@@ -169,7 +152,6 @@ export function loadReviewsBySlug(): Promise<Record<string, Review[]>> {
   );
 }
 
-// ---------- коллекция пользователя ----------
 export function loadCollection(userId: number = 1): Promise<
   (CollectionItem & { game: GameVersion })[]
 > {
@@ -200,7 +182,6 @@ export function loadCollection(userId: number = 1): Promise<
       });
     },
     () =>
-      // в резервном режиме личные данные показываются только у демо-пользователя
       userId === 1
         ? fallbackCollection.map((c, index) => ({
             ...c,
@@ -211,12 +192,11 @@ export function loadCollection(userId: number = 1): Promise<
   );
 }
 
-// ---------- друзья ----------
 export function loadFriends(userId: number = 1): Promise<Friend[]> {
   return withFallback(
     "не удалось прочитать друзей",
     async () => {
-      // друзья читаются из таблицы friendships: связи текущего пользователя
+
       const { data, error } = await sb()
         .from("friendships")
         .select(
@@ -253,8 +233,6 @@ export function loadFriends(userId: number = 1): Promise<Friend[]> {
   );
 }
 
-// ---------- кого можно добавить в друзья ----------
-// уже добавленные в список не попадают, себя в списке тоже нет
 export function loadFriendCandidates(userId: number): Promise<FriendCandidate[]> {
   return withFallback(
     "не удалось прочитать список игроков",
@@ -304,7 +282,7 @@ export function loadFriendCandidates(userId: number): Promise<FriendCandidate[]>
   );
 }
 
-// ---------- добавить друга ----------
+// добавить друга 
 // возвращает текст ошибки или null, если друг добавлен
 export async function addFriend(
   userId: number,
@@ -314,7 +292,6 @@ export async function addFriend(
   if (userId === friendId) return "Себя в друзья добавить нельзя";
 
   if (!supabaseEnabled) {
-    // резервный режим: добавляем в память процесса
     const known = [...localFriends, ...extraFriends].some((f) => f.id === friendId);
     if (known) return "Этот игрок уже в друзьях";
     const candidate = localCandidates.find((c) => c.id === friendId);
@@ -324,14 +301,11 @@ export async function addFriend(
   }
 
   try {
-    // status «принята»: в учебном проекте добавление сразу создаёт дружбу
     const { error } = await sb()
       .from("friendships")
       .insert({ user_id: userId, friend_id: friendId, status: "принята" });
     if (error) {
-      // 23505 — пара уже есть (уникальный индекс user_id + friend_id)
       if (error.code === "23505") return "Этот игрок уже в друзьях";
-      // 23514 — нарушено условие user_id <> friend_id
       if (error.code === "23514") return "Себя в друзья добавить нельзя";
       return "Не удалось добавить друга: " + error.message;
     }
@@ -341,8 +315,6 @@ export async function addFriend(
   }
 }
 
-// ---------- добавить версию в коллекцию ----------
-// возвращает текст ошибки или null, если версия добавлена
 export async function addToCollection(
   userId: number,
   slug: string,
@@ -375,8 +347,6 @@ export async function addToCollection(
     if (versionError) throw new Error(versionError.message);
     if (!version) return "Версия не найдена";
 
-    // upsert по уникальной паре (user_id, version_id): повторное добавление
-    // не создаёт дубль и не роняет страницу
     const { error } = await sb()
       .from("collection_items")
       .upsert(
@@ -390,8 +360,6 @@ export async function addToCollection(
   }
 }
 
-// ---------- убрать версию из коллекции ----------
-// возвращает текст ошибки или null, если версия удалена
 export async function removeFromCollection(
   userId: number,
   slug: string,

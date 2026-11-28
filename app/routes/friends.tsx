@@ -1,7 +1,3 @@
-// Страница «Друзья»: список друзей, добавление новых, заявки
-// и приглашение по ссылке. Друг добавляется серверным action:
-// запись уходит в таблицу friendships (или в память, если базы нет).
-// Статус «приглашение отправлено» хранится в состоянии компонента.
 
 import { useState } from "react";
 import { Form, useActionData, useLoaderData, useNavigation } from "react-router";
@@ -23,8 +19,6 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
-// данные страницы зависят от того, кто открыл её:
-// гость увидит предложение войти, вошедший — своих друзей из базы
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await getUser(request);
   if (!user) {
@@ -41,7 +35,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   return { user, friends, candidates };
 }
 
-// добавление друга: форма отправляет id игрока из списка кандидатов
 export async function action({ request }: Route.ActionArgs) {
   const user = await getUser(request);
   if (!user) return { ok: false, error: "Сначала войдите в аккаунт" };
@@ -58,15 +51,11 @@ export default function Friends() {
   const navigation = useNavigation();
   const adding = navigation.state === "submitting";
 
-  // какие приглашения уже отправлено (только в интерфейсе)
   const [invited, setInvited] = useState<number[]>([]);
-  // открыт ли список игроков для добавления
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  // отправить приглашение другу (имитация записи в game_invitations)
   const invite = (id: number) => setInvited((prev) => [...prev, id]);
 
-  // незарегистрированному чужие друзья не показываются
   if (!user) return <PrivateGate what="Список друзей" />;
 
   return (

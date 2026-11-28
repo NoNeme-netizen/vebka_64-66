@@ -16,9 +16,6 @@ import Header from "~/components/Header"; // шапка сайта
 import Footer from "~/components/Footer"; // подвал сайта
 
 // Корневой layout: обёртка всех страниц приложения.
-// Шапка и подвал общие, содержимое страницы подставляется в <Outlet />.
-
-// Корневой загрузчик: определяет, кто вошёл в приложение (или гость).
 export async function loader({ request }: Route.LoaderArgs) {
   return { user: await getUser(request) };
 }

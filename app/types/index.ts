@@ -27,27 +27,23 @@ export interface Review {
   score: string; // оценка 1–5
   text: string;
 }
-
-// Запись в коллекции пользователя
 export interface CollectionItem {
   slug: string;
-  status: string; // «есть дома», «у друга», «хочу купить»
-  ok: boolean; //_TRUE если версия есть в наличии
-  note: string; // заметка о состоянии коробки
-  rating: string; // личная оценка 1–5
+  status: string;
+  ok: boolean; 
+  note: string; 
+  rating: string; 
 }
 
-// Друг (для страницы «Друзья»)
 export interface Friend {
   id: number;
-  initials: string; // буквы для аватарки
-  color: string; // цвет аватарки
+  initials: string; 
+  color: string; 
   name: string;
-  status: string; // текст статуса («онлайн», «играет в …»)
-  canInvite: boolean; // можно ли позвать играть прямо сейчас
+  status: string; 
+  canInvite: boolean; 
 }
 
-// Игрок, которого можно добавить в друзья (страница «Друзья»)
 export interface FriendCandidate {
   id: number;
   initials: string;

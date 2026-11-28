@@ -78,18 +78,13 @@ export default function Collection() {
   const result = useActionData<typeof action>();
   const navigation = useNavigation();
   const busy = navigation.state === "submitting";
-  // фильтр списка по статусу («все» или конкретный статус)
   const [statusFilter, setStatusFilter] = useState<string>("все");
 
-  // незарегистрированному чужая коллекция не показывается
   if (!user) return <PrivateGate what="Моя коллекция" />;
 
-  // «есть дома» — реально собранные версии; процент считается от них,
-  // чтобы надпись и полоса показывали одно и то же
   const have = rows.filter((r) => r.ok).length;
   const percent = total > 0 ? Math.round((have / total) * 100) : 0;
 
-  // фильтр списка по статусу (в таблице показываются только выбранные)
   const visibleRows =
     statusFilter === "все"
       ? rows

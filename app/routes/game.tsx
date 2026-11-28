@@ -1,5 +1,3 @@
-// Карточка версии игры: /catalog/:slug
-// Страница полностью строится из данных базы (Supabase или локальный резерв).
 
 import { Form, Link, useActionData, useLoaderData, useNavigation } from "react-router";
 import type { Route } from "./+types/game";
@@ -14,7 +12,6 @@ import {
 import { boxSizes } from "~/data/games";
 import Button from "~/components/ui/Button";
 
-// данные версии, её отзывов и наличия в коллекции текущего пользователя
 export async function loader({ params, request }: Route.LoaderArgs) {
   const user = await getUser(request);
   const games = await loadGames();
@@ -32,7 +29,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   };
 }
 
-// добавление или удаление версии в коллекции со страницы игры
 export async function action({ params, request }: Route.ActionArgs) {
   const user = await getUser(request);
   if (!user) return { ok: false, error: "Сначала войдите в аккаунт", message: null };
@@ -55,7 +51,6 @@ export async function action({ params, request }: Route.ActionArgs) {
 }
 
 export function meta({ matches }: Route.MetaArgs) {
-  // данные loader'а текущего маршрута (React Router передаёт их в matches)
   const data = matches.find((m) => m?.id === "routes/game")?.loaderData as
     | { game: { name: string } | null }
     | undefined;
@@ -77,7 +72,6 @@ export default function GamePage() {
   const navigation = useNavigation();
   const busy = navigation.state === "submitting";
 
-  // если адрес неверный — показываем заглушку
   if (!game) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
@@ -89,7 +83,6 @@ export default function GamePage() {
     );
   }
 
-  // характеристики версии (имитация строк таблицы game_versions)
   const params: [string, string][] = [
     ["Игроки", game.players],
     ["Время партии", game.time],
